@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <title>Sound Position — Perception Activity</title>
+  <title>Perception Lab Demo Sound Localization</title>
   <script>
     /* TEACHER SETUP: Paste your Google Apps Script WEB APP URL ending in /exec.
        Keep the quotation marks. An empty value enables clearly labeled local testing.
@@ -206,7 +206,7 @@
 </head>
 <body data-screen="welcome">
   <header class="site-header">
-    <span class="brand">Sound Position <span class="small muted">/ Perception</span></span>
+    <span class="brand">Perception Lab Demo Sound Localization</span>
     <div class="header-actions">
       <span id="headerProgress" class="small"></span>
       <button id="fullscreenButton" type="button">Full screen</button>
@@ -218,7 +218,7 @@
       <div class="sheet">
         <div class="eyebrow">Listening activity</div>
         <h1>Where did the sound seem to be?</h1>
-        <p>Use headphones, listen to a brief sound, and indicate its apparent position. You will complete three practice trials and 65 main trials.</p>
+        <p>In this task, you will hear pairs of brief noise bursts through your headphones. For each pair, you will indicate where the second sound seems to be coming from and then rate how certain you are about that location.</p>
         <div id="localMode" class="notice warning" hidden><strong>Local test mode.</strong> Google Sheets is not connected. You can try the complete activity and download your responses. Before class, add the Apps Script deployment URL at the top of this file.</div>
         <div id="resumePanel" class="notice" hidden>
           <p>A previous session is saved in this browser. Resume it if it is yours, or use the form below to start a separate session.</p>
@@ -304,7 +304,7 @@
       </div>
     </section>
     <section id="break" class="screen" hidden>
-      <div class="sheet"><div class="eyebrow" id="breakEyebrow">Practice complete</div><h1 id="breakTitle">Ready for the main activity?</h1><p id="breakText">You will now complete 65 trials. Respond based on what you hear; there is no trial-by-trial correctness feedback.</p><button id="breakContinue" type="button" class="primary">Start main trials</button></div>
+      <div class="sheet"><div class="eyebrow" id="breakEyebrow">Practice complete</div><h1 id="breakTitle">Ready for the main activity?</h1><p id="breakText">Respond based on what you hear; there is no trial-by-trial correctness feedback.</p><button id="breakContinue" type="button" class="primary">Start main trials</button></div>
     </section>
     <section id="paused" class="screen screen-paused" hidden>
       <div class="sheet"><div class="eyebrow">Paused</div><h1>Continue when you are ready</h1><p id="pauseReason">The current trial will be replayed before you respond.</p><p id="pauseError" role="alert" class="error" hidden></p><button id="resumeTrial" type="button" class="primary">Replay this trial</button></div>
@@ -1387,7 +1387,7 @@
     document.querySelectorAll('main > .screen').forEach(el=>{el.hidden=el.id!==name;});
     $('pauseButton').hidden=name!=='trial';
     $('saveArea').hidden=!state.session;
-    $('headerProgress').textContent=state.session ? mainRecords(state.session).length+' / 65 main trials' : '';
+    $('headerProgress').textContent='';
     if(name!=='trial'&&name!=='paused')window.scrollTo(0,0);
   }
   function message(id,text) {const el=$(id);el.textContent=text||'';el.hidden=!text;}
@@ -1531,7 +1531,7 @@
     const token=++state.token;state.responding=false;state.selected=null;
     clearTimeout(state.pendingTimer);stopSound();
     show('trial');$('responseWrap').hidden=true;$('listening').hidden=false;
-    $('trialProgress').textContent=(c.phase==='practice'?'Practice ':'Trial ')+(c.index+1)+' of '+(c.phase==='practice'?3:65);
+    $('trialProgress').textContent=c.phase==='practice'?'Practice':'Listening activity';
     $('trialPrompt').textContent='Listen to both sounds';
     markerHidden('responseMarker',true);markerHidden('hoverMarker',true);
     document.querySelectorAll('[data-confidence]').forEach(b=>{b.disabled=true;});
@@ -1636,12 +1636,12 @@
     state.breakNext=next;
     if(next==='main') {
       $('breakEyebrow').textContent='Practice complete';$('breakTitle').textContent='Ready for the main activity?';
-      $('breakText').textContent='You will now complete 65 trials. Respond based on what you hear; there is no trial-by-trial correctness feedback.';
+      $('breakText').textContent='Respond based on what you hear; there is no trial-by-trial correctness feedback.';
       $('breakContinue').textContent='Start main trials';
     }else{
       $('breakEyebrow').textContent=next==='resume_practice'?'Practice':'Listening activity';
       $('breakTitle').textContent='Continue when you are ready';
-      $('breakText').textContent=mainRecords(state.session).length+' of 65 main trials completed. Keep your headphones and volume settings the same.';
+      $('breakText').textContent='Keep your headphones and volume settings the same.';
       $('breakContinue').textContent='Continue';
     }
     show('break');
