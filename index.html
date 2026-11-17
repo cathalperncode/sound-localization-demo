@@ -8,9 +8,11 @@
   <script>
     /* TEACHER SETUP: Paste your Google Apps Script WEB APP URL ending in /exec.
        Keep the quotation marks. An empty value enables clearly labeled local testing.
-       Only index.html needs to be uploaded to GitHub Pages. */
-    const GOOGLE_SCRIPT_URL = "";
-    const ITD_TASK_VERSION = "1.0.0";
+       Only index.html needs to be uploaded to GitHub Pages.
+       Task 1.1.0 also needs the matching Code.gs receiver update in Apps Script
+       so responses without certainty ratings can be saved. */
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlcy_b5sRleWrRe4k4wLSQuZ7Pnc6T3yt6X_FH1q2vOn3OJK3G_z6aXUVQEmMEjFZ5Ow/exec";
+    const ITD_TASK_VERSION = "1.1.0";
   </script>
   <style>
     :root { color-scheme:light; --ink:#17252b; --muted:#526068; --line:#d5dde0; --paper:#fff; --wash:#f2f5f5; --accent:#176b72; --accent-soft:#e7f3f2; --task:#b7b7b7; --danger:#8b2c28; }
@@ -77,11 +79,6 @@
     #responseArc .hit { stroke:transparent; stroke-width:50; fill:none; cursor:crosshair; }
     #responseMarker { fill:#075e6a; stroke:#fff; stroke-width:2; }
     #hoverMarker { fill:#075e6a; opacity:.45; pointer-events:none; }
-    .confidence { margin:6px auto 0; min-height:105px; }
-    .confidence p { margin-bottom:10px; font-size:18px; }
-    .confidence-buttons { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
-    .confidence-buttons button { min-height:48px; font-size:15px; background:#e8e8e8; border-color:#777; }
-    .confidence-buttons button:hover:not(:disabled) { background:#f6f6f6; }
     #selectionHelp { font-size:14px; color:#333; margin:2px 0 0; }
     .screen-paused { padding-top:10vh; }
     #results { max-width:1100px; }
@@ -92,8 +89,8 @@
     .save-area button { font-size:13px; padding:6px 10px; }
     body[data-screen="trial"] .save-area,body[data-screen="paused"] .save-area { color:#343434; }
     .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-    @media(max-width:560px) { body { font-size:16px; } .site-header { padding:12px 16px; } .brand { gap:10px; } .brand-mark { width:44px; height:44px; } .brand-name { font-size:23px; } .brand-demo { font-size:13px; } .screen { padding:22px 14px; } .sheet { padding:20px; } .grid-two { grid-template-columns:1fr; gap:0; } .trial-screen { padding:10px 8px; } .confidence-buttons { gap:7px; display:grid; grid-template-columns:1fr 1fr; max-width:450px; margin:auto; } .confidence-buttons button { padding:9px 7px; } #responseArc { max-height:46vh; min-height:180px; } .save-area { padding:12px 15px; } }
-    @media(max-height:650px) and (min-width:650px) { .site-header { padding:8px 20px; } .trial-top { min-height:45px; } #responseArc { max-height:44vh; } .confidence { min-height:85px; } .save-area { padding-top:4px; } }
+    @media(max-width:560px) { body { font-size:16px; } .site-header { padding:12px 16px; } .brand { gap:10px; } .brand-mark { width:44px; height:44px; } .brand-name { font-size:23px; } .brand-demo { font-size:13px; } .screen { padding:22px 14px; } .sheet { padding:20px; } .grid-two { grid-template-columns:1fr; gap:0; } .trial-screen { padding:10px 8px; } #responseArc { max-height:46vh; min-height:180px; } .save-area { padding:12px 15px; } }
+    @media(max-height:650px) and (min-width:650px) { .site-header { padding:8px 20px; } .trial-top { min-height:45px; } #responseArc { max-height:44vh; } .save-area { padding-top:4px; } }
     @media print { body { background:#fff; color:#111; font-size:12px; } .site-header,.save-area,.screen:not(#results),.no-print { display:none!important; } #results { display:block!important; max-width:none; padding:0; } .results-heading { margin-bottom:12px; } }
     .itd-report {
   --itd-r-ink: #17232d;
@@ -215,9 +212,11 @@
     <div class="brand">
       <svg class="brand-mark" viewBox="0 0 56 56" aria-hidden="true" focusable="false">
         <rect x="1" y="1" width="54" height="54" rx="16" fill="#e7f3f2" stroke="#c8dfdf" stroke-width="1.2"/>
-        <path d="M9 28 C18 12 38 12 47 28 C38 44 18 44 9 28 Z" fill="none" stroke="#176b72" stroke-width="2.2" stroke-linejoin="round"/>
-        <circle cx="28" cy="28" r="8" fill="#176b72"/>
-        <circle cx="30.5" cy="25.5" r="2.2" fill="#ffffff"/>
+        <g fill="none" stroke="#176b72" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18.5 20.5 C18.5 13.5 22.8 9.5 29 9.5 C36.1 9.5 40.4 14.6 40.4 21.7 C40.4 28.9 35.4 31.1 33.4 35.9 C31.7 40 31.9 46 25.9 46 C21.8 46 19.2 43.2 19.2 39.5"/>
+          <path d="M24 20.7 C24 17.2 26 15.2 29.4 15.2 C33 15.2 35.1 18.1 35.1 21.7 C35.1 25.5 32.2 26.9 30.2 29.4"/>
+          <path d="M19.9 28.6 C22.8 25.1 28.6 26.2 28.6 30.5 C28.6 33.8 25.5 34.8 24.2 37.3"/>
+        </g>
       </svg>
       <div class="brand-copy">
         <span class="brand-name">Perception Lab</span>
@@ -235,7 +234,7 @@
       <div class="sheet">
         <div class="eyebrow">Listening activity</div>
         <h1>Where did the sound seem to be?</h1>
-        <p>In this task, you will hear pairs of brief noise bursts through your headphones. For each pair, you will indicate where the second sound seems to be coming from and then rate how certain you are about that location.</p>
+        <p>In this task, you will hear pairs of brief noise bursts through your headphones. For each pair, you will indicate where the second sound seems to be coming from.</p>
         <div id="localMode" class="notice warning" hidden><strong>Local test mode.</strong> Google Sheets is not connected. You can try the complete activity and download your responses. Before class, add the Apps Script deployment URL at the top of this file.</div>
         <div id="resumePanel" class="notice" hidden>
           <p>A previous session is saved in this browser. Resume it if it is yours, or use the form below to start a separate session.</p>
@@ -289,8 +288,8 @@
         <div class="eyebrow">Your task</div><h1>Listen, then mark the location</h1>
         <p>On each trial, you will hear <strong>two brief sounds</strong>.</p>
         <p>After the <strong>second sound</strong>, click the point on the arc that best matches where that sound seemed to come from.</p>
-        <p>Then indicate how certain you are about the location you selected. Choosing a certainty rating advances to the next trial. If you are unsure, give your best estimate.</p>
-        <p class="small muted">The arc runs from left to right in front of the pictured head. You can also use the left and right arrow keys to select a position. The sounds may seem to be inside your head; choose the point that best matches their left–right position.</p>
+        <p>Clicking a location records your response and advances to the next trial. If you are unsure, give your best estimate.</p>
+        <p class="small muted">The arc runs from left to right in front of the pictured head. You can also use the left and right arrow keys to choose a position, then press Enter to submit it. The sounds may seem to be inside your head; choose the point that best matches their left–right position.</p>
         <label class="check"><input id="wantFullscreen" type="checkbox" checked><span>Use full screen during the activity</span></label>
         <p id="instructionError" class="error" role="alert" hidden></p>
         <button id="startPractice" type="button" class="primary">Begin practice</button>
@@ -300,7 +299,7 @@
       <div class="trial-top"><div id="trialProgress"></div><h2 id="trialPrompt">Listen to both sounds</h2></div>
       <div id="listening" class="listening"><span class="fixation" aria-label="Fixation cross">+</span></div>
       <div id="responseWrap" class="response-wrap" hidden>
-        <svg id="responseArc" viewBox="0 0 720 440" role="slider" tabindex="0" aria-label="Reported sound position, left to right" aria-valuemin="-90" aria-valuemax="90" aria-valuenow="0" aria-valuetext="No location selected">
+        <svg id="responseArc" viewBox="0 0 720 440" role="slider" tabindex="0" aria-label="Reported sound position, left to right" aria-describedby="selectionHelp" aria-valuemin="-90" aria-valuemax="90" aria-valuenow="0" aria-valuetext="No location selected" aria-disabled="true">
           <title>Click on the front semicircle to mark the apparent sound location</title>
           <path class="arc-line" d="M80,360 A280,280 0 0 1 640,360"></path>
           <path class="hit" d="M80,360 A280,280 0 0 1 640,360"></path>
@@ -311,13 +310,7 @@
           <circle id="hoverMarker" r="9" cx="360" cy="80" hidden></circle>
           <circle id="responseMarker" r="10" cx="360" cy="80" hidden></circle>
         </svg>
-        <p id="selectionHelp">Click the arc, or use the left and right arrow keys.</p>
-        <div id="confidence" class="confidence">
-          <p id="confidencePrompt">Select a location first.</p>
-          <div class="confidence-buttons">
-            <button type="button" data-confidence="1" disabled>Not at all certain</button><button type="button" data-confidence="2" disabled>Slightly certain</button><button type="button" data-confidence="3" disabled>Fairly certain</button><button type="button" data-confidence="4" disabled>Very certain</button>
-          </div>
-        </div>
+        <p id="selectionHelp">Click the arc to respond. Keyboard: use the left and right arrow keys to choose a position, then press Enter to submit.</p>
       </div>
     </section>
     <section id="break" class="screen" hidden>
@@ -337,7 +330,7 @@
   </footer>
   <noscript><div class="screen"><p>JavaScript is required for this listening activity.</p></div></noscript>
   <script>
-    const ITD_CONTRACT = {"protocol": "itd-demo-v1", "schema_version": 1, "task_version": "1.0.0", "trial_sheet": "ITD_Trials", "receipt_sheet": "_ITD_Receipts", "record_fields": ["record_id", "run_id", "task_version", "first_name", "last_name", "student_id", "section_number", "phase", "trial_index", "main_trial_index", "itd_us", "leading_ear", "delay_magnitude_us", "repetition", "response_angle_deg", "confidence", "location_rt_ms", "certainty_rt_ms", "trial_started_utc", "response_utc", "confidence_utc", "browser_started_utc", "timezone", "utc_offset_minutes", "sample_rate_hz", "delay_samples_float", "audio_synthesis_method", "programmed_itd_us", "rms_left", "rms_right", "peak_abs", "audio_context_reference_start_s", "audio_context_target_start_s", "reference_duration_ms", "gap_ms", "target_duration_ms", "ramp_ms", "band_low_hz", "band_high_hz", "volume_gain", "headphone_type", "headphone_model", "headphone_lr_verified", "centered_check", "mono_spatial_off", "window_blurred", "tab_hidden", "interrupted_attempts", "interrupt_reasons", "fullscreen_at_target", "viewport_width", "viewport_height", "device_pixel_ratio", "base_latency_s", "output_latency_s", "stimulus_seed", "reference_seed", "schedule_seed", "browser_user_agent"], "server_prefix_fields": ["server_received_utc", "server_received_pacific", "batch_id", "record_sha256"], "signed_itds_us": [-640, -560, -480, -340, -200, -100, 0, 100, 200, 340, 480, 560, 640], "post_shape": {"protocol": "itd-demo-v1", "schema_version": 1, "batch_id": "random string", "receipt_token": "random string", "run_id": "random string", "records": []}, "status_query": "action=status&batch_id=...&receipt_token=...&callback=...", "status_success": {"ok": true, "protocol": "itd-demo-v1", "received": true, "batch_id": "...", "run_id": "...", "record_count": 13, "server_received_utc": "..."}, "ping_success": {"ok": true, "protocol": "itd-demo-v1", "ready": true}};
+    const ITD_CONTRACT = {"protocol": "itd-demo-v1", "schema_version": 1, "task_version": "1.1.0", "trial_sheet": "ITD_Trials", "receipt_sheet": "_ITD_Receipts", "record_fields": ["record_id", "run_id", "task_version", "first_name", "last_name", "student_id", "section_number", "phase", "trial_index", "main_trial_index", "itd_us", "leading_ear", "delay_magnitude_us", "repetition", "response_angle_deg", "confidence", "location_rt_ms", "certainty_rt_ms", "trial_started_utc", "response_utc", "confidence_utc", "browser_started_utc", "timezone", "utc_offset_minutes", "sample_rate_hz", "delay_samples_float", "audio_synthesis_method", "programmed_itd_us", "rms_left", "rms_right", "peak_abs", "audio_context_reference_start_s", "audio_context_target_start_s", "reference_duration_ms", "gap_ms", "target_duration_ms", "ramp_ms", "band_low_hz", "band_high_hz", "volume_gain", "headphone_type", "headphone_model", "headphone_lr_verified", "centered_check", "mono_spatial_off", "window_blurred", "tab_hidden", "interrupted_attempts", "interrupt_reasons", "fullscreen_at_target", "viewport_width", "viewport_height", "device_pixel_ratio", "base_latency_s", "output_latency_s", "stimulus_seed", "reference_seed", "schedule_seed", "browser_user_agent"], "server_prefix_fields": ["server_received_utc", "server_received_pacific", "batch_id", "record_sha256"], "signed_itds_us": [-640, -560, -480, -340, -200, -100, 0, 100, 200, 340, 480, 560, 640], "post_shape": {"protocol": "itd-demo-v1", "schema_version": 1, "batch_id": "random string", "receipt_token": "random string", "run_id": "random string", "records": []}, "status_query": "action=status&batch_id=...&receipt_token=...&callback=...", "status_success": {"ok": true, "protocol": "itd-demo-v1", "received": true, "batch_id": "...", "run_id": "...", "record_count": 13, "server_received_utc": "..."}, "ping_success": {"ok": true, "protocol": "itd-demo-v1", "ready": true}};
     /* Pure task helpers. Embedded into index.html by build.py. */
 (function (root) {
   'use strict';
@@ -860,8 +853,6 @@
       accepted.push({
         itd_us: Object.is(record.itd_us, -0) ? 0 : record.itd_us,
         response_angle_deg: record.response_angle_deg,
-        confidence: Number.isInteger(record.confidence) && record.confidence >= 1 && record.confidence <= 4
-          ? record.confidence : null,
         trial_index: finiteNumber(record.trial_index) ? record.trial_index : null,
         source_index: sourceIndex
       });
@@ -874,14 +865,11 @@
     var groups = Array.from(grouped.entries()).sort(function (a, b) { return a[0] - b[0]; })
       .map(function (entry) {
         var rows = entry[1];
-        var confidenceValues = rows.map(function (row) { return row.confidence; }).filter(finiteNumber);
         return {
           itd_us: entry[0],
           records: rows,
           n: rows.length,
-          mean_angle_deg: average(rows.map(function (row) { return row.response_angle_deg; })),
-          mean_confidence: average(confidenceValues),
-          confidence_n: confidenceValues.length
+          mean_angle_deg: average(rows.map(function (row) { return row.response_angle_deg; }))
         };
       });
     return { records: accepted, groups: groups, n: accepted.length, rejected: rejected };
@@ -1075,7 +1063,7 @@
     responseTable.appendChild(responseCaption);
     var responseHead = element('thead');
     var responseHeader = element('tr');
-    ['Trial', 'Position', 'Certainty (1\u20134)'].forEach(function (text) {
+    ['Trial', 'Position'].forEach(function (text) {
       var th = element('th', '', text); th.scope = 'col'; responseHeader.appendChild(th);
     });
     responseHead.appendChild(responseHeader);
@@ -1085,7 +1073,6 @@
     responseTableWrap.appendChild(responseTable);
     detailRow.appendChild(responseTableWrap);
     selectedSection.appendChild(detailRow);
-    selectedSection.appendChild(element('p', 'itd-r-note', 'Certainty records how sure you felt. It does not tell us whether a particular angle is correct.'));
     root.appendChild(selectedSection);
 
     var mechanismSection = element('section', 'itd-report-section');
@@ -1131,7 +1118,7 @@
     [
       'How did the ear receiving the sound first relate to where you placed your response?',
       'Did larger timing differences move your responses farther from the center? Was the pattern similar on the left and right?',
-      'At which delays were your repeated responses most consistent? How did that compare with your certainty?'
+      'At which delays were your repeated responses most consistent? Where did they vary most?'
     ].forEach(function (text) { questions.appendChild(element('li', '', text)); });
     reflection.appendChild(questions);
     root.appendChild(reflection);
@@ -1141,15 +1128,14 @@
     var summaryTable = element('table', 'itd-r-table itd-r-summary-table');
     summaryTable.appendChild(element('caption', '', 'Your observed averages'));
     var summaryHead = element('thead'), summaryHeader = element('tr');
-    ['ITD (\u00b5s)', 'Responses', 'Average position', 'Mean certainty'].forEach(function (text) {
+    ['ITD (\u00b5s)', 'Responses', 'Average position'].forEach(function (text) {
       var th = element('th', '', text); th.scope = 'col'; summaryHeader.appendChild(th);
     });
     summaryHead.appendChild(summaryHeader); summaryTable.appendChild(summaryHead);
     var summaryBody = element('tbody');
     summary.groups.forEach(function (group) {
       var row = element('tr');
-      [signed(group.itd_us), String(group.n), positionLabel(group.mean_angle_deg),
-        group.mean_confidence === null ? '\u2014' : group.mean_confidence.toFixed(1) + ' / 4'].forEach(function (value) {
+      [signed(group.itd_us), String(group.n), positionLabel(group.mean_angle_deg)].forEach(function (value) {
         row.appendChild(element('td', '', value));
       });
       summaryBody.appendChild(row);
@@ -1249,7 +1235,7 @@
       arc.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
       arc.setAttribute('height', String(height));
       arc.querySelector('desc').textContent = delayLabel(selected) + '. ' + group.records.map(function (record) {
-        return positionLabel(record.response_angle_deg) + ', certainty ' + (record.confidence === null ? 'not recorded' : record.confidence);
+        return positionLabel(record.response_angle_deg);
       }).join('; ') + '. Average ' + positionLabel(group.mean_angle_deg) + '.';
       arc.appendChild(svgNode('path', { d: 'M' + (cx - radius) + ',' + cy + 'A' + radius + ',' + radius + ' 0 0 1 ' + (cx + radius) + ',' + cy,
         'class': 'itd-r-arc-outline' }));
@@ -1263,8 +1249,7 @@
         // A tiny radial offset separates equal-angle repeats without changing their angular position.
         var point = arcPoint(record.response_angle_deg, cx, cy, radius + ((index % 5) - 2) * 2.3);
         var dot = svgNode('circle', { cx: point.x, cy: point.y, r: 4.5, 'class': 'itd-r-arc-dot' });
-        dot.appendChild(svgNode('title', {}, positionLabel(record.response_angle_deg) + '; certainty ' +
-          (record.confidence === null ? 'not recorded' : record.confidence + ' of 4')));
+        dot.appendChild(svgNode('title', {}, positionLabel(record.response_angle_deg)));
         arc.appendChild(dot);
       });
       var meanPoint = arcPoint(group.mean_angle_deg, cx, cy, radius + 14);
@@ -1310,16 +1295,14 @@
       var group = selectedGroup();
       selectedStats.replaceChildren();
       selectedStats.appendChild(element('strong', '', 'Average position: ' + positionLabel(group.mean_angle_deg)));
-      selectedStats.appendChild(element('span', '', group.n + ' response' + (group.n === 1 ? '' : 's') +
-        (group.mean_confidence === null ? '' : ' \u00b7 Mean certainty: ' + group.mean_confidence.toFixed(1) + ' / 4')));
+      selectedStats.appendChild(element('span', '', group.n + ' response' + (group.n === 1 ? '' : 's')));
       selectedLabel.textContent = delayLabel(selected) + ' (' + (Math.abs(selected) / 1000).toFixed(3) + ' ms difference)';
       timingLabel.textContent = selected === 0 ? 'Selected condition: both copies arrive together.'
         : 'Selected condition: the ' + (selected < 0 ? 'left' : 'right') + ' ear receives the waveform ' + Math.abs(selected) + ' \u00b5s earlier.';
       responseBody.replaceChildren();
       group.records.forEach(function (record) {
         var row = element('tr');
-        [record.trial_index === null ? '\u2014' : String(record.trial_index), positionLabel(record.response_angle_deg),
-          record.confidence === null ? '\u2014' : String(record.confidence)].forEach(function (value) {
+        [record.trial_index === null ? '\u2014' : String(record.trial_index), positionLabel(record.response_angle_deg)].forEach(function (value) {
           row.appendChild(element('td', '', value));
         });
         responseBody.appendChild(row);
@@ -1551,8 +1534,8 @@
     $('trialProgress').textContent=c.phase==='practice'?'Practice':'Listening activity';
     $('trialPrompt').textContent='Listen to both sounds';
     markerHidden('responseMarker',true);markerHidden('hoverMarker',true);
-    document.querySelectorAll('[data-confidence]').forEach(b=>{b.disabled=true;});
-    $('confidencePrompt').textContent='Select a location first.';
+    $('responseArc').setAttribute('aria-disabled','true');
+    $('responseArc').setAttribute('aria-valuenow','0');
     $('responseArc').setAttribute('aria-valuetext','No location selected');
     c.trial_started_utc=nowUTC();saveInProgress();
     if(document.hidden||!state.windowFocused){interrupt(document.hidden?'tab_hidden':'window_blurred');return;}
@@ -1577,6 +1560,7 @@
       if(token!==state.token)return;
       if(document.hidden){interrupt('tab_hidden');return;}
       state.responding=true;c.response_enabled_perf=performance.now();
+      $('responseArc').setAttribute('aria-disabled','false');
       $('listening').hidden=true;$('responseWrap').hidden=false;
       $('trialPrompt').textContent='Where did the second sound seem to be?';
       $('responseArc').focus({preventScroll:true});
@@ -1616,24 +1600,23 @@
   function chooseLocation(angle) {
     if(!state.responding||!Number.isFinite(angle))return;
     state.selected=round(Math.max(-90,Math.min(90,angle)),2);
-    const c=state.current;c.selection_perf=performance.now();c.response_utc=nowUTC();
     drawMarker('responseMarker',state.selected);markerHidden('hoverMarker',true);
     $('responseArc').setAttribute('aria-valuenow',String(state.selected));
     $('responseArc').setAttribute('aria-valuetext',state.selected===0?'Center':Math.abs(state.selected).toFixed(0)+' degrees '+(state.selected<0?'left':'right'));
-    $('confidencePrompt').textContent='How certain are you about this location?';
-    document.querySelectorAll('[data-confidence]').forEach(b=>{b.disabled=false;});
   }
-  function recordResponse(confidence) {
+  function recordResponse() {
     if(!state.responding||state.selected===null)return;
-    state.responding=false;document.querySelectorAll('[data-confidence]').forEach(b=>{b.disabled=true;});
+    state.responding=false;$('responseArc').setAttribute('aria-disabled','true');
     const s=state.session,c=state.current,m=c.audio,ctx=state.context,setup=s.setup;
-    const confidenceTime=performance.now();
+    const responseTime=performance.now();
     const record={
       record_id:s.run_id+'-'+c.phase+'-'+(c.index+1),run_id:s.run_id,task_version:ITD_TASK_VERSION,
       ...s.participant,phase:c.phase,trial_index:c.index+1,main_trial_index:c.phase==='main'?c.index+1:0,
       itd_us:c.spec.itd_us,leading_ear:c.spec.itd_us<0?'left':c.spec.itd_us>0?'right':'neither',delay_magnitude_us:Math.abs(c.spec.itd_us),repetition:c.spec.repetition,
-      response_angle_deg:state.selected,confidence,location_rt_ms:round(c.selection_perf-c.response_enabled_perf,2),certainty_rt_ms:round(confidenceTime-c.selection_perf,2),
-      trial_started_utc:c.trial_started_utc,response_utc:c.response_utc,confidence_utc:nowUTC(),browser_started_utc:s.browser_started_utc,
+      response_angle_deg:state.selected,location_rt_ms:round(responseTime-c.response_enabled_perf,2),
+      // Retain the existing sheet columns; no certainty judgment is collected in version 1.1.0.
+      confidence:null,certainty_rt_ms:null,confidence_utc:null,
+      trial_started_utc:c.trial_started_utc,response_utc:nowUTC(),browser_started_utc:s.browser_started_utc,
       timezone:s.timezone,utc_offset_minutes:new Date().getTimezoneOffset(),sample_rate_hz:ctx.sampleRate,delay_samples_float:m.signedDelaySamples,audio_synthesis_method:m.method,
       programmed_itd_us:m.programmedItdUs,rms_left:m.rmsLeft,rms_right:m.rmsRight,peak_abs:Math.max(m.peakLeft,m.peakRight),
       audio_context_reference_start_s:c.reference_start,audio_context_target_start_s:c.target_start,reference_duration_ms:AUDIO.durationMs,gap_ms:GAP_MS,target_duration_ms:AUDIO.durationMs,ramp_ms:AUDIO.rampMs,band_low_hz:AUDIO.lowHz,band_high_hz:AUDIO.highHz,
@@ -1750,10 +1733,19 @@
   document.addEventListener('fullscreenchange',()=>{$('fullscreenButton').textContent=document.fullscreenElement?'Exit full screen':'Full screen';requestAnimationFrame(enlargeArcLabels);});
   $('responseArc').addEventListener('pointermove',event=>{if(state.responding){const angle=pointFromEvent(event);if(angle!==null)drawMarker('hoverMarker',angle);else markerHidden('hoverMarker',true);}});
   $('responseArc').addEventListener('pointerleave',()=>{markerHidden('hoverMarker',true);});
-  $('responseArc').addEventListener('pointerdown',event=>{if(!state.responding)return;const angle=pointFromEvent(event);if(angle!==null){event.preventDefault();chooseLocation(angle);}});
+  $('responseArc').addEventListener('pointerdown',event=>{
+    if(!state.responding||event.button!==0||event.isPrimary===false)return;
+    const angle=pointFromEvent(event);
+    if(angle!==null){event.preventDefault();chooseLocation(angle);recordResponse();}
+  });
   $('responseArc').addEventListener('keydown',event=>{
     if(!state.responding)return;
     let angle=state.selected===null?0:state.selected;
+    if(event.key==='Enter'||event.key===' '){
+      event.preventDefault();
+      if(!event.repeat){chooseLocation(angle);recordResponse();}
+      return;
+    }
     if(event.key==='ArrowLeft')angle-=event.shiftKey?1:5;
     else if(event.key==='ArrowRight')angle+=event.shiftKey?1:5;
     else if(event.key==='Home')angle=-90;
@@ -1762,7 +1754,6 @@
     else return;
     event.preventDefault();chooseLocation(angle);
   });
-  document.querySelectorAll('[data-confidence]').forEach(b=>b.addEventListener('click',()=>recordResponse(Number(b.dataset.confidence))));
   $('retrySave').addEventListener('click',retrySave);
   $('downloadCSV').addEventListener('click',downloadCSV);
   $('downloadBackup').addEventListener('click',downloadBackup);
