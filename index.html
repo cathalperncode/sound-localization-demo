@@ -1,0 +1,1770 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Sound Position — Perception Activity</title>
+  <script>
+    /* TEACHER SETUP: Paste your Google Apps Script WEB APP URL ending in /exec.
+       Keep the quotation marks. An empty value enables clearly labeled local testing.
+       Only index.html needs to be uploaded to GitHub Pages. */
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlcy_b5sRleWrRe4k4wLSQuZ7Pnc6T3yt6X_FH1q2vOn3OJK3G_z6aXUVQEmMEjFZ5Ow/exec";
+    const ITD_TASK_VERSION = "1.0.0";
+  </script>
+  <style>
+    :root { color-scheme:light; --ink:#17252b; --muted:#526068; --line:#d5dde0; --paper:#fff; --wash:#f2f5f5; --accent:#176b72; --accent-soft:#e7f3f2; --task:#b7b7b7; --danger:#8b2c28; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:17px; line-height:1.5; }
+    body[data-screen="trial"],body[data-screen="paused"] { background:var(--task); }
+    button,input,select { font:inherit; }
+    button { padding:11px 19px; background:var(--paper); color:var(--ink); border:1px solid var(--line); border-radius:7px; cursor:pointer; }
+    button:hover:not(:disabled) { border-color:var(--accent); background:var(--accent-soft); }
+    button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+    button.primary:hover:not(:disabled) { background:#12545a; }
+    button:disabled { cursor:default; opacity:.45; }
+    button:focus-visible,input:focus-visible,select:focus-visible,svg:focus-visible { outline:3px solid #007d94; outline-offset:4px; }
+    input,select { padding:10px 12px; border:1px solid #aab8bd; border-radius:5px; background:#fff; color:var(--ink); width:100%; }
+    input[type="checkbox"] { width:20px; height:20px; flex:none; }
+    input[type="range"] { padding:5px 0; }
+    label { display:block; }
+    h1,h2,h3 { line-height:1.2; font-weight:650; }
+    h1 { font-size:clamp(28px,4vw,42px); margin:0 0 15px; }
+    h2 { font-size:25px; margin:0 0 15px; }
+    h3 { font-size:19px; margin:0 0 10px; }
+    p { margin:0 0 17px; }
+    a { color:var(--accent); }
+    [hidden] { display:none!important; }
+    .site-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:16px 28px; border-bottom:1px solid rgba(40,50,55,.15); }
+    .brand { font-weight:650; letter-spacing:.02em; }
+    .header-actions { display:flex; gap:10px; align-items:center; }
+    .header-actions button { padding:7px 12px; font-size:14px; }
+    .screen { max-width:880px; padding:34px 28px; margin:0 auto; }
+    .sheet { background:#fff; border:1px solid var(--line); border-radius:10px; padding:30px; }
+    .eyebrow { text-transform:uppercase; letter-spacing:.09em; color:var(--muted); font-size:12px; font-weight:650; margin-bottom:8px; }
+    .muted { color:var(--muted); }
+    .small { font-size:14px; }
+    .grid-two { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    .field { margin:0 0 18px; }
+    .field label { margin-bottom:6px; font-weight:550; }
+    .row { display:flex; align-items:center; flex-wrap:wrap; gap:12px; }
+    .check { display:flex; align-items:flex-start; gap:10px; margin:16px 0; }
+    .check input { margin:4px 0 0; }
+    .notice { padding:13px 16px; background:var(--accent-soft); border-left:4px solid var(--accent); border-radius:3px; margin:16px 0; }
+    .warning { background:#fff1d9; border-left-color:#98620b; }
+    .error { color:var(--danger); }
+    .setup-section { padding:22px 0; border-bottom:1px solid var(--line); }
+    .setup-section:first-child { padding-top:0; }
+    .setup-section:last-child { border:0; }
+    .volume-row { display:grid; grid-template-columns:1fr auto; gap:15px; align-items:center; margin:12px 0; }
+    .trial-screen { max-width:none; width:100%; padding:15px 24px; text-align:center; }
+    .trial-top { min-height:65px; }
+    .trial-top h2 { font-size:23px; margin:4px 0; }
+    #trialProgress { font-size:15px; color:#363a3c; font-variant-numeric:tabular-nums; }
+    .listening { min-height:clamp(280px,55vh,560px); display:flex; align-items:center; justify-content:center; }
+    .fixation { font-size:46px; font-weight:400; }
+    .response-wrap { max-width:900px; margin:0 auto; }
+    #responseArc { width:100%; max-height:54vh; min-height:200px; display:block; margin:0 auto; touch-action:none; }
+    #responseArc text { fill:#202326; font:20px system-ui,sans-serif; }
+    #responseArc .head { fill:none; stroke:#202326; stroke-width:3; }
+    #responseArc .arc-line { fill:none; stroke:#202326; stroke-width:3; }
+    #responseArc .hit { stroke:transparent; stroke-width:50; fill:none; cursor:crosshair; }
+    #responseMarker { fill:#075e6a; stroke:#fff; stroke-width:2; }
+    #hoverMarker { fill:#075e6a; opacity:.45; pointer-events:none; }
+    .confidence { margin:6px auto 0; min-height:105px; }
+    .confidence p { margin-bottom:10px; font-size:18px; }
+    .confidence-buttons { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
+    .confidence-buttons button { min-height:48px; font-size:15px; background:#e8e8e8; border-color:#777; }
+    .confidence-buttons button:hover:not(:disabled) { background:#f6f6f6; }
+    #selectionHelp { font-size:14px; color:#333; margin:2px 0 0; }
+    .screen-paused { padding-top:10vh; }
+    #results { max-width:1100px; }
+    .results-heading { display:flex; align-items:start; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+    .results-heading h1 { font-size:32px; }
+    .save-area { max-width:1100px; margin:0 auto; padding:14px 28px 24px; font-size:14px; }
+    .save-area .row { gap:8px; }
+    .save-area button { font-size:13px; padding:6px 10px; }
+    body[data-screen="trial"] .save-area,body[data-screen="paused"] .save-area { color:#343434; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media(max-width:560px) { body { font-size:16px; } .site-header { padding:12px 16px; } .screen { padding:22px 14px; } .sheet { padding:20px; } .grid-two { grid-template-columns:1fr; gap:0; } .trial-screen { padding:10px 8px; } .confidence-buttons { gap:7px; display:grid; grid-template-columns:1fr 1fr; max-width:450px; margin:auto; } .confidence-buttons button { padding:9px 7px; } #responseArc { max-height:46vh; min-height:180px; } .save-area { padding:12px 15px; } }
+    @media(max-height:650px) and (min-width:650px) { .site-header { padding:8px 20px; } .trial-top { min-height:45px; } #responseArc { max-height:44vh; } .confidence { min-height:85px; } .save-area { padding-top:4px; } }
+    @media print { body { background:#fff; color:#111; font-size:12px; } .site-header,.save-area,.screen:not(#results),.no-print { display:none!important; } #results { display:block!important; max-width:none; padding:0; } .results-heading { margin-bottom:12px; } }
+    .itd-report {
+  --itd-r-ink: #17232d;
+  --itd-r-muted: #52616d;
+  --itd-r-paper: #ffffff;
+  --itd-r-rule: #cdd6dc;
+  --itd-r-soft-rule: #e7ecef;
+  --itd-r-accent: #126f86;
+  width: 100%;
+  max-width: 1000px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: clamp(18px, 4vw, 40px);
+  background: var(--itd-r-paper);
+  color: var(--itd-r-ink);
+  border-radius: 16px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  text-align: left;
+}
+.itd-report *, .itd-report *::before, .itd-report *::after { box-sizing: border-box; }
+.itd-report h1, .itd-report h2, .itd-report p { margin: 0; }
+.itd-report .itd-r-title { font-size: clamp(25px, 4vw, 34px); line-height: 1.2; font-weight: 700; }
+.itd-report .itd-r-intro { margin-top: 10px; color: var(--itd-r-muted); }
+.itd-report .itd-report-section { margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--itd-r-rule); }
+.itd-report h2 { font-size: 20px; line-height: 1.3; font-weight: 650; margin-bottom: 12px; }
+.itd-report .itd-r-description { max-width: 78ch; margin-bottom: 14px; }
+.itd-report .itd-r-note { font-size: 14px; color: var(--itd-r-muted); margin-top: 12px; }
+.itd-report .itd-r-actions, .itd-report .itd-r-replays { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.itd-report .itd-r-button {
+  appearance: none; border: 1px solid #aebdc6; border-radius: 8px; background: var(--itd-r-paper); color: var(--itd-r-ink);
+  padding: 10px 15px; min-height: 44px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.itd-report .itd-r-button:hover { background: #f0f5f7; border-color: var(--itd-r-accent); }
+.itd-report .itd-r-button:disabled { opacity: .55; cursor: wait; }
+.itd-report .itd-r-button:focus-visible, .itd-report .itd-r-select:focus-visible, .itd-report summary:focus-visible {
+  outline: 3px solid #2788a2; outline-offset: 3px;
+}
+.itd-report .itd-r-action-status { margin-top: 10px; font-size: 14px; color: var(--itd-r-muted); }
+.itd-report .itd-r-action-status:empty { display: none; }
+.itd-report .itd-r-empty { margin-top: 24px; }
+.itd-report .itd-r-scatter-wrap { width: 100%; min-width: 0; }
+.itd-report .itd-r-svg { display: block; width: 100%; overflow: visible; }
+.itd-report .itd-r-svg-text { fill: var(--itd-r-ink); font: 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.itd-report .itd-r-muted-svg { fill: var(--itd-r-muted); }
+.itd-report .itd-r-chart-frame { fill: none; stroke: var(--itd-r-rule); stroke-width: 1; }
+.itd-report .itd-r-grid { stroke: var(--itd-r-soft-rule); stroke-width: 1; }
+.itd-report .itd-r-zero-grid { stroke: #acbbc5; stroke-width: 1; }
+.itd-report .itd-r-selected-line { stroke: var(--itd-r-accent); stroke-width: 2; opacity: .17; }
+.itd-report .itd-r-observation { fill: #647481; opacity: .48; }
+.itd-report .itd-r-active-observation { fill: var(--itd-r-accent); opacity: .9; }
+.itd-report .itd-r-mean-line { stroke: var(--itd-r-accent); stroke-width: 1.6; fill: none; }
+.itd-report .itd-r-mean-mark { fill: var(--itd-r-accent); }
+.itd-report .itd-r-mean-hit { fill: transparent; cursor: pointer; }
+.itd-report .itd-r-key { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 2px 0 0 78px; font-size: 14px; }
+.itd-report .itd-r-key span { display: inline-flex; align-items: center; gap: 9px; }
+.itd-report .itd-r-key-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #647481; }
+.itd-report .itd-r-key-diamond { display: inline-block; width: 9px; height: 9px; transform: rotate(45deg); background: var(--itd-r-accent); }
+.itd-report .itd-r-selected-row { display: flex; flex-wrap: wrap; align-items: end; gap: 14px 25px; }
+.itd-report .itd-r-field { flex: 1 1 230px; min-width: 0; }
+.itd-report .itd-r-field label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+.itd-report .itd-r-select { width: 100%; min-height: 45px; background: #fff; color: var(--itd-r-ink); border: 1px solid #aebdc6;
+  border-radius: 7px; padding: 8px 10px; font: inherit; font-size: 16px; }
+.itd-report .itd-r-selected-stats { flex: 1 1 240px; font-variant-numeric: tabular-nums; }
+.itd-report .itd-r-selected-stats strong, .itd-report .itd-r-selected-stats span { display: block; }
+.itd-report .itd-r-selected-stats span { font-size: 14px; color: var(--itd-r-muted); margin-top: 3px; }
+.itd-report .itd-r-selected-label { margin-top: 12px; font-size: 14px; color: var(--itd-r-muted); }
+.itd-report .itd-r-detail-row { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
+.itd-report .itd-r-arc-wrap { flex: 1 1 310px; min-width: 0; max-width: 450px; }
+.itd-report .itd-r-response-table-wrap { flex: 1 1 285px; min-width: 0; }
+.itd-report .itd-r-arc-outline { fill: none; stroke: #9faeb8; stroke-width: 1.5; }
+.itd-report .itd-r-head { fill: #fff; stroke: var(--itd-r-ink); stroke-width: 1.5; }
+.itd-report .itd-r-head-nose { fill: none; stroke: var(--itd-r-ink); stroke-width: 1.5; }
+.itd-report .itd-r-arc-dot { fill: var(--itd-r-accent); opacity: .72; }
+.itd-report .itd-r-table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.4; font-variant-numeric: tabular-nums; }
+.itd-report .itd-r-table caption { text-align: left; font-weight: 600; margin: 10px 0 8px; color: var(--itd-r-ink); }
+.itd-report .itd-r-table th, .itd-report .itd-r-table td { padding: 8px 6px; border-bottom: 1px solid var(--itd-r-soft-rule); text-align: left; overflow-wrap: anywhere; }
+.itd-report .itd-r-table th { color: var(--itd-r-muted); font-size: 12px; font-weight: 600; }
+.itd-report .itd-r-table th:first-child, .itd-report .itd-r-table td:first-child { padding-left: 0; }
+.itd-report .itd-r-timing-label { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
+.itd-report .itd-r-timing-wrap { width: 100%; }
+.itd-report .itd-r-wave { fill: none; stroke: var(--itd-r-accent); stroke-width: 1.5; }
+.itd-report .itd-r-wave-onset { stroke: var(--itd-r-accent); stroke-width: 1.2; opacity: .45; }
+.itd-report .itd-r-reflection ol { padding-left: 25px; margin: 0; }
+.itd-report .itd-r-reflection li { padding-left: 3px; margin: 10px 0; }
+.itd-report .itd-r-summary-details { margin-top: 28px; }
+.itd-report .itd-r-summary-details summary { cursor: pointer; font-weight: 600; padding: 10px 0; }
+@media (max-width: 440px) {
+  .itd-report { padding: 16px 10px; border-radius: 10px; }
+  .itd-report .itd-r-title { font-size: 25px; }
+  .itd-report h2 { font-size: 18px; }
+  .itd-report .itd-r-key { margin-left: 78px; gap: 10px 18px; font-size: 13px; }
+  .itd-report .itd-r-arc-wrap { flex-basis: 100%; margin-inline: auto; }
+  .itd-report .itd-r-response-table-wrap { flex-basis: 100%; }
+}
+@media print {
+  .itd-report { max-width: none; padding: 0; margin: 0; border-radius: 0; color: #111; background: #fff; font-size: 10pt;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .itd-report .itd-r-no-print { display: none !important; }
+  .itd-report .itd-r-title { font-size: 21pt; }
+  .itd-report h2 { font-size: 14pt; }
+  .itd-report .itd-report-section { break-inside: avoid; margin-top: 18px; padding-top: 15px; }
+  .itd-report .itd-r-note { font-size: 9pt; }
+  .itd-report .itd-r-description { margin-bottom: 8px; }
+  .itd-report .itd-r-table { font-size: 9pt; }
+  .itd-report .itd-r-table th { font-size: 8pt; }
+  .itd-report .itd-r-table th, .itd-report .itd-r-table td { padding-top: 5px; padding-bottom: 5px; }
+  .itd-report .itd-r-detail-row { flex-wrap: nowrap; }
+  .itd-report .itd-r-summary-details { break-before: auto; }
+  .itd-report .itd-r-summary-details > :not(summary) { display: table; }
+  .itd-report .itd-r-summary-table { break-inside: avoid; }
+}
+
+  </style>
+</head>
+<body data-screen="welcome">
+  <header class="site-header">
+    <span class="brand">Sound Position <span class="small muted">/ Perception</span></span>
+    <div class="header-actions">
+      <span id="headerProgress" class="small"></span>
+      <button id="fullscreenButton" type="button">Full screen</button>
+      <button id="pauseButton" type="button" hidden>Pause</button>
+    </div>
+  </header>
+  <main>
+    <section id="welcome" class="screen">
+      <div class="sheet">
+        <div class="eyebrow">Listening activity</div>
+        <h1>Where did the sound seem to be?</h1>
+        <p>Use headphones, listen to a brief sound, and indicate its apparent position. You will complete three practice trials and 65 main trials.</p>
+        <div id="localMode" class="notice warning" hidden><strong>Local test mode.</strong> Google Sheets is not connected. You can try the complete activity and download your responses. Before class, add the Apps Script deployment URL at the top of this file.</div>
+        <div id="resumePanel" class="notice" hidden>
+          <p>A previous session is saved in this browser. Resume it if it is yours, or use the form below to start a separate session.</p>
+          <button id="resumeButton" type="button">Resume previous session</button>
+        </div>
+        <form id="participantForm">
+          <div class="grid-two">
+            <div class="field"><label for="firstName">First name</label><input id="firstName" name="first_name" required maxlength="80" autocomplete="given-name"></div>
+            <div class="field"><label for="lastName">Last name</label><input id="lastName" name="last_name" required maxlength="80" autocomplete="family-name"></div>
+            <div class="field"><label for="studentID">Student ID</label><input id="studentID" name="student_id" type="text" required maxlength="40" inputmode="numeric" autocomplete="off"></div>
+            <div class="field"><label for="sectionNumber">Section</label><input id="sectionNumber" name="section_number" required maxlength="30" placeholder="e.g., A01" autocomplete="off"></div>
+          </div>
+          <p class="small muted">Your name, student ID, section, and task responses are included in the class data when Google Sheets is connected. A recovery copy stays in this browser.</p>
+          <p id="welcomeError" class="error" role="alert" hidden></p>
+          <button type="submit" class="primary">Continue to headphone setup</button>
+        </form>
+      </div>
+    </section>
+    <section id="setup" class="screen" hidden>
+      <div class="sheet">
+        <div class="eyebrow">Before you begin</div><h1>Headphone check</h1>
+        <div class="setup-section">
+          <h2>1. Put on both earpieces</h2>
+          <p>Use a quiet place. Check the L and R markings. Turn off mono audio, spatial audio, virtual surround, and head tracking.</p>
+          <div class="grid-two">
+            <div class="field"><label for="headphoneType">Headphone connection</label><select id="headphoneType"><option value="wired">Wired</option><option value="wireless">Wireless / Bluetooth</option><option value="other">Other / unsure</option></select></div>
+            <div class="field"><label for="headphoneModel">Model, if known <span class="small muted">(optional)</span></label><input id="headphoneModel" maxlength="120" placeholder="Leave blank if unknown"></div>
+          </div>
+          <label class="check"><input type="checkbox" id="processingOff"><span>I am using both earpieces with mono and spatial audio processing turned off.</span></label>
+        </div>
+        <div class="setup-section">
+          <h2>2. Find a comfortable volume</h2>
+          <p>Start with your device volume low. Play the sound and adjust until it is clearly audible and comfortable. Keep the volume fixed during the activity.</p>
+          <div class="volume-row"><label for="volume">Activity volume<input id="volume" type="range" min="0.05" max="1" step="0.01" value="0.3"></label><output id="volumeValue" for="volume">30%</output></div>
+          <div class="row"><button id="testCenter" type="button">Play in both ears</button><button id="stopSetupSound" type="button">Stop sound</button></div>
+          <div class="field" style="margin-top:16px"><label for="centeredCheck">Where did it seem to be?</label><select id="centeredCheck"><option value="">Choose one</option><option value="centered">Approximately centered</option><option value="slightly_left">Slightly to the left</option><option value="slightly_right">Slightly to the right</option><option value="strongly_off_center">Strongly to one side</option></select></div>
+          <p id="balanceNote" class="small error" hidden>Check the fit and your device's left/right balance setting. If the sound remains strongly off-center, try another pair of headphones if available.</p>
+        </div>
+        <div class="setup-section">
+          <h2>3. Check left and right</h2>
+          <div class="row"><button id="testLeft" type="button">Play left only</button><button id="testRight" type="button">Play right only</button></div>
+          <label class="check"><input type="checkbox" id="channelsVerified"><span>I heard the left sound on my left and the right sound on my right.</span></label>
+          <label class="check"><input type="checkbox" id="comfortable"><span>The sound is comfortable and clearly audible.</span></label>
+          <p id="setupError" class="error" role="alert" hidden></p>
+          <button id="setupContinue" class="primary" type="button">Continue</button>
+        </div>
+      </div>
+    </section>
+    <section id="instructions" class="screen" hidden>
+      <div class="sheet">
+        <div class="eyebrow">Your task</div><h1>Listen, then mark the location</h1>
+        <p>On each trial, you will hear <strong>two brief sounds</strong>.</p>
+        <p>After the <strong>second sound</strong>, click the point on the arc that best matches where that sound seemed to come from.</p>
+        <p>Then indicate how certain you are about the location you selected. Choosing a certainty rating advances to the next trial. If you are unsure, give your best estimate.</p>
+        <p class="small muted">The arc runs from left to right in front of the pictured head. You can also use the left and right arrow keys to select a position. The sounds may seem to be inside your head; choose the point that best matches their left–right position.</p>
+        <label class="check"><input id="wantFullscreen" type="checkbox" checked><span>Use full screen during the activity</span></label>
+        <p id="instructionError" class="error" role="alert" hidden></p>
+        <button id="startPractice" type="button" class="primary">Begin practice</button>
+      </div>
+    </section>
+    <section id="trial" class="screen trial-screen" hidden>
+      <div class="trial-top"><div id="trialProgress"></div><h2 id="trialPrompt">Listen to both sounds</h2></div>
+      <div id="listening" class="listening"><span class="fixation" aria-label="Fixation cross">+</span></div>
+      <div id="responseWrap" class="response-wrap" hidden>
+        <svg id="responseArc" viewBox="0 0 720 440" role="slider" tabindex="0" aria-label="Reported sound position, left to right" aria-valuemin="-90" aria-valuemax="90" aria-valuenow="0" aria-valuetext="No location selected">
+          <title>Click on the front semicircle to mark the apparent sound location</title>
+          <path class="arc-line" d="M80,360 A280,280 0 0 1 640,360"></path>
+          <path class="hit" d="M80,360 A280,280 0 0 1 640,360"></path>
+          <circle class="head" cx="360" cy="360" r="40"></circle>
+          <path class="head" d="M350,320 L360,303 L370,320"></path>
+          <path class="head" d="M320,349 Q310,360 320,371 M400,349 Q410,360 400,371"></path>
+          <text x="80" y="410" text-anchor="middle">Left</text><text x="360" y="48" text-anchor="middle">Center</text><text x="640" y="410" text-anchor="middle">Right</text>
+          <circle id="hoverMarker" r="9" cx="360" cy="80" hidden></circle>
+          <circle id="responseMarker" r="10" cx="360" cy="80" hidden></circle>
+        </svg>
+        <p id="selectionHelp">Click the arc, or use the left and right arrow keys.</p>
+        <div id="confidence" class="confidence">
+          <p id="confidencePrompt">Select a location first.</p>
+          <div class="confidence-buttons">
+            <button type="button" data-confidence="1" disabled>Not at all certain</button><button type="button" data-confidence="2" disabled>Slightly certain</button><button type="button" data-confidence="3" disabled>Fairly certain</button><button type="button" data-confidence="4" disabled>Very certain</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="break" class="screen" hidden>
+      <div class="sheet"><div class="eyebrow" id="breakEyebrow">Practice complete</div><h1 id="breakTitle">Ready for the main activity?</h1><p id="breakText">You will now complete 65 trials. Respond based on what you hear; there is no trial-by-trial correctness feedback.</p><button id="breakContinue" type="button" class="primary">Start main trials</button></div>
+    </section>
+    <section id="paused" class="screen screen-paused" hidden>
+      <div class="sheet"><div class="eyebrow">Paused</div><h1>Continue when you are ready</h1><p id="pauseReason">The current trial will be replayed before you respond.</p><p id="pauseError" role="alert" class="error" hidden></p><button id="resumeTrial" type="button" class="primary">Replay this trial</button></div>
+    </section>
+    <section id="results" class="screen" hidden>
+      <div class="results-heading"><div><div class="eyebrow">Your results</div><h1>Timing and perceived position</h1><p id="participantSummary" class="small"></p></div><button id="newSession" class="no-print" type="button">New session</button></div>
+      <div id="resultsReport"></div>
+    </section>
+  </main>
+  <footer id="saveArea" class="save-area" hidden>
+    <p id="saveStatus" aria-live="polite"></p>
+    <div class="row"><button id="retrySave" type="button">Retry saving</button><button id="downloadCSV" type="button">Download responses (CSV)</button><button id="downloadBackup" type="button">Download recovery copy</button></div>
+  </footer>
+  <noscript><div class="screen"><p>JavaScript is required for this listening activity.</p></div></noscript>
+  <script>
+    const ITD_CONTRACT = {"protocol": "itd-demo-v1", "schema_version": 1, "task_version": "1.0.0", "trial_sheet": "ITD_Trials", "receipt_sheet": "_ITD_Receipts", "record_fields": ["record_id", "run_id", "task_version", "first_name", "last_name", "student_id", "section_number", "phase", "trial_index", "main_trial_index", "itd_us", "leading_ear", "delay_magnitude_us", "repetition", "response_angle_deg", "confidence", "location_rt_ms", "certainty_rt_ms", "trial_started_utc", "response_utc", "confidence_utc", "browser_started_utc", "timezone", "utc_offset_minutes", "sample_rate_hz", "delay_samples_float", "audio_synthesis_method", "programmed_itd_us", "rms_left", "rms_right", "peak_abs", "audio_context_reference_start_s", "audio_context_target_start_s", "reference_duration_ms", "gap_ms", "target_duration_ms", "ramp_ms", "band_low_hz", "band_high_hz", "volume_gain", "headphone_type", "headphone_model", "headphone_lr_verified", "centered_check", "mono_spatial_off", "window_blurred", "tab_hidden", "interrupted_attempts", "interrupt_reasons", "fullscreen_at_target", "viewport_width", "viewport_height", "device_pixel_ratio", "base_latency_s", "output_latency_s", "stimulus_seed", "reference_seed", "schedule_seed", "browser_user_agent"], "server_prefix_fields": ["server_received_utc", "server_received_pacific", "batch_id", "record_sha256"], "signed_itds_us": [-640, -560, -480, -340, -200, -100, 0, 100, 200, 340, 480, 560, 640], "post_shape": {"protocol": "itd-demo-v1", "schema_version": 1, "batch_id": "random string", "receipt_token": "random string", "run_id": "random string", "records": []}, "status_query": "action=status&batch_id=...&receipt_token=...&callback=...", "status_success": {"ok": true, "protocol": "itd-demo-v1", "received": true, "batch_id": "...", "run_id": "...", "record_count": 13, "server_received_utc": "..."}, "ping_success": {"ok": true, "protocol": "itd-demo-v1", "ready": true}};
+    /* Pure task helpers. Embedded into index.html by build.py. */
+(function (root) {
+  'use strict';
+  const ITDS = Object.freeze([-640,-560,-480,-340,-200,-100,0,100,200,340,480,560,640]);
+  function random(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function schedule(seed, repetitions) {
+    const rng = random(seed);
+    const trials = [];
+    for (const itd of ITDS) {
+      for (let rep = 1; rep <= (repetitions || 5); rep++) {
+        trials.push({itd_us:itd,repetition:rep,stimulus_seed:Math.floor(rng()*4294967296),reference_seed:Math.floor(rng()*4294967296)});
+      }
+    }
+    for (let i=trials.length-1; i>0; i--) {
+      const j = Math.floor(rng()*(i+1));
+      [trials[i],trials[j]] = [trials[j],trials[i]];
+    }
+    return trials;
+  }
+  function arcPoint(angle, cx, cy, radius) {
+    const a = angle*Math.PI/180;
+    return {x:cx+radius*Math.sin(a),y:cy-radius*Math.cos(a)};
+  }
+  function angleFromPoint(x,y,cx,cy) {
+    if (!Number.isFinite(x+y+cx+cy) || y>cy+12) return null;
+    if (Math.hypot(x-cx,y-cy)<20) return null;
+    return Math.max(-90,Math.min(90,Math.atan2(x-cx,cy-y)*180/Math.PI));
+  }
+  function csvCell(value) {
+    if (value===undefined || value===null) return '""';
+    let text = typeof value==='object' ? JSON.stringify(value) : String(value);
+    if (typeof value==='string' && /^[\s]*[=+@-]/.test(text)) text="'"+text;
+    return '"'+text.replace(/"/g,'""')+'"';
+  }
+  function csv(records, fields) {
+    return '\uFEFF'+[fields.map(csvCell).join(','),...records.map(row=>fields.map(f=>csvCell(row[f])).join(','))].join('\r\n')+'\r\n';
+  }
+  function mean(values) { return values.length ? values.reduce((a,b)=>a+b,0)/values.length : null; }
+  const api = {ITDS,random,schedule,arcPoint,angleFromPoint,csvCell,csv,mean};
+  if (typeof module!=='undefined' && module.exports) module.exports=api;
+  if (root) root.ITDCore=api;
+})(typeof window!=='undefined'?window:null);
+
+    /*
+ * ITDAudio: deterministic, dependency-free synthesis for a classroom ITD demo.
+ *
+ * A Gaussian band-limited Fourier process is evaluated at t and t - delay.
+ * The SAME analytic envelope is evaluated at those same two times. Thus the
+ * entire waveform, including its ramps, shifts by the requested fractional
+ * delay; the delay is never rounded to an integer number of audio samples.
+ *
+ * Positive itdUs means RIGHT EAR FIRST: the left channel is delayed.
+ * Negative itdUs means LEFT EAR FIRST: the right channel is delayed.
+ * These are programmed digital differences, not measured acoustic delays.
+ */
+(function (root, factory) {
+  "use strict";
+  var api = factory();
+  if (typeof module === "object" && module.exports) module.exports = api;
+  if (root) root.ITDAudio = api;
+})(typeof window !== "undefined" ? window : globalThis, function () {
+  "use strict";
+
+  var VERSION = "1.0.0";
+  var PEAK_LIMIT = 0.95;
+  var MAX_FFT_LENGTH = 1048576;
+  var TWO_PI = 2 * Math.PI;
+
+  function finiteNumber(value, name) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      throw new TypeError(name + " must be a finite number.");
+    }
+    return value;
+  }
+
+  function nextPowerOfTwo(value) {
+    var result = 1;
+    while (result < value) result *= 2;
+    if (result > MAX_FFT_LENGTH) {
+      throw new RangeError("The requested audio buffer is too large.");
+    }
+    return result;
+  }
+
+  // FNV-1a gives string seeds a stable, explicit 32-bit representation.
+  function seedToUint32(seed) {
+    if (typeof seed === "number") {
+      finiteNumber(seed, "seed");
+      if (!Number.isInteger(seed)) {
+        throw new TypeError("A numeric seed must be an integer.");
+      }
+      return seed >>> 0;
+    }
+    if (typeof seed !== "string") {
+      throw new TypeError("seed must be an integer or a string.");
+    }
+    var hash = 2166136261;
+    for (var i = 0; i < seed.length; i++) {
+      hash ^= seed.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
+
+  function makeGaussianGenerator(seed) {
+    var state = seed >>> 0;
+    var spare = null;
+
+    function uniform() {
+      state = (state + 0x6D2B79F5) >>> 0;
+      var t = state;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+
+    return function gaussian() {
+      if (spare !== null) {
+        var value = spare;
+        spare = null;
+        return value;
+      }
+      var u;
+      do { u = uniform(); } while (u === 0);
+      var v = uniform();
+      var radius = Math.sqrt(-2 * Math.log(u));
+      var angle = TWO_PI * v;
+      spare = radius * Math.sin(angle);
+      return radius * Math.cos(angle);
+    };
+  }
+
+  // In-place radix-2 complex FFT. inverse=true includes the 1/N scaling.
+  function fft(real, imag, inverse) {
+    var n = real.length;
+    var i;
+    var j = 0;
+    for (i = 1; i < n; i++) {
+      var bit = n >> 1;
+      while (j & bit) {
+        j ^= bit;
+        bit >>= 1;
+      }
+      j ^= bit;
+      if (i < j) {
+        var swap = real[i];
+        real[i] = real[j];
+        real[j] = swap;
+        swap = imag[i];
+        imag[i] = imag[j];
+        imag[j] = swap;
+      }
+    }
+
+    for (var size = 2; size <= n; size *= 2) {
+      var half = size / 2;
+      var angle = (inverse ? TWO_PI : -TWO_PI) / size;
+      var stepReal = Math.cos(angle);
+      var stepImag = Math.sin(angle);
+      for (var start = 0; start < n; start += size) {
+        var wr = 1;
+        var wi = 0;
+        for (j = 0; j < half; j++) {
+          var even = start + j;
+          var odd = even + half;
+          var vr = real[odd] * wr - imag[odd] * wi;
+          var vi = real[odd] * wi + imag[odd] * wr;
+          var ur = real[even];
+          var ui = imag[even];
+          real[even] = ur + vr;
+          imag[even] = ui + vi;
+          real[odd] = ur - vr;
+          imag[odd] = ui - vi;
+          var nextWr = wr * stepReal - wi * stepImag;
+          wi = wr * stepImag + wi * stepReal;
+          wr = nextWr;
+        }
+      }
+    }
+
+    if (inverse) {
+      for (i = 0; i < n; i++) {
+        real[i] /= n;
+        imag[i] /= n;
+      }
+    }
+  }
+
+  // A continuous-time raised-cosine envelope, expressed in sample units.
+  // Time may be fractional. Both ends, and their first derivatives, are zero.
+  function envelope(time, duration, ramp) {
+    if (time <= 0 || time >= duration) return 0;
+    if (time < ramp) return 0.5 - 0.5 * Math.cos(Math.PI * time / ramp);
+    if (time > duration - ramp) {
+      return 0.5 - 0.5 * Math.cos(Math.PI * (duration - time) / ramp);
+    }
+    return 1;
+  }
+
+  function channelStats(channel, durationSamples) {
+    var sumSquares = 0;
+    var peak = 0;
+    for (var i = 0; i < channel.length; i++) {
+      var value = channel[i];
+      sumSquares += value * value;
+      if (Math.abs(value) > peak) peak = Math.abs(value);
+    }
+    return {
+      rms: Math.sqrt(sumSquares / channel.length),
+      burstRms: Math.sqrt(sumSquares / durationSamples),
+      peak: peak,
+      energy: sumSquares
+    };
+  }
+
+  function synthesize(options) {
+    options = options || {};
+    var sampleRate = finiteNumber(options.sampleRate, "sampleRate");
+    var itdUs = finiteNumber(options.itdUs, "itdUs");
+    var seed = options.seed === undefined ? 1 : options.seed;
+    var durationMs = finiteNumber(options.durationMs === undefined ? 400 : options.durationMs, "durationMs");
+    var rampMs = finiteNumber(options.rampMs === undefined ? 20 : options.rampMs, "rampMs");
+    var lowHz = finiteNumber(options.lowHz === undefined ? 200 : options.lowHz, "lowHz");
+    var highHz = finiteNumber(options.highHz === undefined ? 1200 : options.highHz, "highHz");
+    var rms = finiteNumber(options.rms === undefined ? 0.08 : options.rms, "rms");
+
+    if (sampleRate <= 0) throw new RangeError("sampleRate must be positive.");
+    if (durationMs <= 0) throw new RangeError("durationMs must be positive.");
+    if (rampMs <= 0 || rampMs > durationMs / 2) {
+      throw new RangeError("rampMs must be positive and no more than half durationMs.");
+    }
+    if (lowHz < 0 || highHz <= lowHz || highHz >= sampleRate / 2) {
+      throw new RangeError("The frequency band must be ordered and below Nyquist.");
+    }
+    if (rms <= 0 || rms > 1) throw new RangeError("rms must be in (0, 1].");
+
+    var seed32 = seedToUint32(seed);
+    var durationSamples = sampleRate * durationMs / 1000;
+    var rampSamples = sampleRate * rampMs / 1000;
+    var delaySamples = sampleRate * Math.abs(itdUs) / 1000000;
+    // One extra terminal sample guarantees an exact zero after both envelopes.
+    var outputLength = Math.ceil(durationSamples + delaySamples) + 1;
+    var fftLength = nextPowerOfTwo(outputLength);
+    var firstBin = Math.max(1, Math.ceil(lowHz * fftLength / sampleRate));
+    var lastBin = Math.min(fftLength / 2 - 1, Math.floor(highHz * fftLength / sampleRate));
+    if (lastBin < firstBin) {
+      throw new RangeError("The requested band contains no resolvable Fourier components.");
+    }
+
+    var earlyReal = new Float64Array(fftLength);
+    var earlyImag = new Float64Array(fftLength);
+    var lateReal = itdUs === 0 ? null : new Float64Array(fftLength);
+    var lateImag = itdUs === 0 ? null : new Float64Array(fftLength);
+    var gaussian = makeGaussianGenerator(seed32);
+
+    for (var k = firstBin; k <= lastBin; k++) {
+      var re = gaussian();
+      var im = gaussian();
+      earlyReal[k] = re;
+      earlyImag[k] = im;
+      earlyReal[fftLength - k] = re;
+      earlyImag[fftLength - k] = -im;
+      if (lateReal) {
+        // Fourier shift theorem, without rounding delaySamples.
+        var phase = -TWO_PI * k * delaySamples / fftLength;
+        var cosine = Math.cos(phase);
+        var sine = Math.sin(phase);
+        var shiftedRe = re * cosine - im * sine;
+        var shiftedIm = re * sine + im * cosine;
+        lateReal[k] = shiftedRe;
+        lateImag[k] = shiftedIm;
+        lateReal[fftLength - k] = shiftedRe;
+        lateImag[fftLength - k] = -shiftedIm;
+      }
+    }
+
+    fft(earlyReal, earlyImag, true);
+    if (lateReal) fft(lateReal, lateImag, true);
+
+    var rawEarly = new Float64Array(outputLength);
+    var rawLate = itdUs === 0 ? rawEarly : new Float64Array(outputLength);
+    var earlyEnergy = 0;
+    var lateEnergy = 0;
+    var rawPeak = 0;
+    for (var n = 0; n < outputLength; n++) {
+      var earlyValue = earlyReal[n] * envelope(n, durationSamples, rampSamples);
+      var lateValue = lateReal
+        ? lateReal[n] * envelope(n - delaySamples, durationSamples, rampSamples)
+        : earlyValue;
+      rawEarly[n] = earlyValue;
+      if (lateReal) rawLate[n] = lateValue;
+      earlyEnergy += earlyValue * earlyValue;
+      lateEnergy += lateValue * lateValue;
+      rawPeak = Math.max(rawPeak, Math.abs(earlyValue), Math.abs(lateValue));
+    }
+
+    var rawBurstRms = Math.sqrt((earlyEnergy + lateEnergy) / (2 * durationSamples));
+    if (!Number.isFinite(rawBurstRms) || rawBurstRms === 0) {
+      throw new Error("Noise synthesis produced an invalid zero-energy waveform.");
+    }
+    var gain = rms / rawBurstRms;
+    var headroomScale = Math.min(1, PEAK_LIMIT / (rawPeak * gain));
+    gain *= headroomScale;
+
+    var early = new Float32Array(outputLength);
+    var late = new Float32Array(outputLength);
+    for (n = 0; n < outputLength; n++) {
+      early[n] = rawEarly[n] * gain;
+      late[n] = rawLate[n] * gain;
+    }
+
+    var left = itdUs > 0 ? late : early;
+    var right = itdUs > 0 ? early : late;
+    var leftStats = channelStats(left, durationSamples);
+    var rightStats = channelStats(right, durationSamples);
+    var leftOnsetMs = itdUs > 0 ? itdUs / 1000 : 0;
+    var rightOnsetMs = itdUs < 0 ? -itdUs / 1000 : 0;
+    var latestOffsetMs = durationMs + Math.abs(itdUs) / 1000;
+    var totalDurationMs = outputLength / sampleRate * 1000;
+
+    return {
+      left: left,
+      right: right,
+      metadata: {
+        implementationVersion: VERSION,
+        method: "gaussian_fourier_noise_and_analytic_fractional_envelope_shift",
+        sampleRate: sampleRate,
+        seed: seed,
+        seedUint32: seed32,
+        requestedItdUs: itdUs,
+        programmedItdUs: itdUs,
+        signedDelaySamples: sampleRate * itdUs / 1000000,
+        leadingEar: itdUs > 0 ? "right" : (itdUs < 0 ? "left" : "neither"),
+        durationMs: durationMs,
+        rampMs: rampMs,
+        lowHz: lowHz,
+        highHz: highHz,
+        firstCarrierFrequencyHz: firstBin * sampleRate / fftLength,
+        lastCarrierFrequencyHz: lastBin * sampleRate / fftLength,
+        fftLength: fftLength,
+        outputLengthSamples: outputLength,
+        onset_padding_ms: 0,
+        left_envelope_onset_ms: leftOnsetMs,
+        right_envelope_onset_ms: rightOnsetMs,
+        left_envelope_offset_ms: durationMs + leftOnsetMs,
+        right_envelope_offset_ms: durationMs + rightOnsetMs,
+        latest_envelope_offset_ms: latestOffsetMs,
+        total_duration_ms: totalDurationMs,
+        trailing_padding_ms: totalDurationMs - latestOffsetMs,
+        requestedRms: rms,
+        rmsLeft: leftStats.rms,
+        rmsRight: rightStats.rms,
+        burstRmsLeft: leftStats.burstRms,
+        burstRmsRight: rightStats.burstRms,
+        peakLeft: leftStats.peak,
+        peakRight: rightStats.peak,
+        ildLeftMinusRightDb: 20 * Math.log10(leftStats.rms / rightStats.rms),
+        commonGain: gain,
+        peakLimit: PEAK_LIMIT,
+        peakLimited: headroomScale < 1,
+        acousticTimingValidated: false
+      }
+    };
+  }
+
+  return Object.freeze({ version: VERSION, synthesize: synthesize });
+});
+
+    /* Append-only batch upload; an opaque POST is never treated as confirmation. */
+(function (root) {
+  'use strict';
+  function endpointValid(value) {
+    try { const u=new URL(value); return u.protocol==='https:' && u.hostname==='script.google.com' && /\/exec$/.test(u.pathname); }
+    catch (_) { return false; }
+  }
+  function randomID() {
+    const cryptoObject = root ? root.crypto : globalThis.crypto;
+    if (!cryptoObject || !cryptoObject.getRandomValues) throw new Error('This browser needs secure random-number support.');
+    const bytes=cryptoObject.getRandomValues(new Uint8Array(16));
+    return Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  function jsonp(endpoint,params,timeoutMs) {
+    return new Promise((resolve,reject)=>{
+      const callback='itd_ack_'+randomID();
+      const script=document.createElement('script');
+      let settled=false;
+      const finish=(error,data)=>{
+        if(settled)return; settled=true; clearTimeout(timer);script.remove();
+        // A late response must not become an uncaught ReferenceError.
+        root[callback]=function(){};
+        setTimeout(()=>{delete root[callback];},60000);
+        error?reject(error):resolve(data);
+      };
+      const timer=setTimeout(()=>finish(new Error('Google Sheets did not return a confirmation.')),timeoutMs||15000);
+      root[callback]=data=>finish(null,data);
+      script.onerror=()=>finish(new Error('The Google Sheets connection could not be confirmed.'));
+      const url=new URL(endpoint);
+      Object.entries({...params,callback,ts:Date.now()}).forEach(([k,v])=>url.searchParams.set(k,String(v)));
+      script.src=url.href;script.referrerPolicy='no-referrer';document.head.appendChild(script);
+    });
+  }
+  class DataClient {
+    constructor(session,options) {
+      this.session=session;this.options=options||{};this.running=false;
+      if(!session.uploads)session.uploads=[];
+      this.jsonp=this.options.jsonp||jsonp;
+      this.fetch=this.options.fetch||((...args)=>fetch(...args));
+      this.id=this.options.id||randomID;
+    }
+    changed() { if(this.options.persist)this.options.persist();if(this.options.onChange)this.options.onChange(); }
+    queue() {
+      const already=new Set(this.session.uploads.flatMap(j=>j.payload.records.map(r=>r.record_id)));
+      const missing=this.session.records.filter(r=>!already.has(r.record_id));
+      if(!missing.length || !endpointValid(this.session.endpoint))return null;
+      // Immutable payloads make repeated delivery idempotent at the receiver.
+      const job={endpoint:this.session.endpoint,payload:{protocol:'itd-demo-v1',schema_version:1,batch_id:this.id(),receipt_token:this.id()+this.id(),run_id:this.session.run_id,records:JSON.parse(JSON.stringify(missing))},attempts:0,confirmed:false,last_error:''};
+      this.session.uploads.push(job);this.changed();return job;
+    }
+    confirmedCount() { return this.session.uploads.filter(j=>j.confirmed).reduce((n,j)=>n+j.payload.records.length,0); }
+    validReceipt(job,data) {
+      const timestamp=data&&typeof data.server_received_utc==='string'?Date.parse(data.server_received_utc):NaN;
+      return !!(data && data.ok===true && data.protocol==='itd-demo-v1' && data.received===true && data.batch_id===job.payload.batch_id && data.run_id===job.payload.run_id && Number.isInteger(data.record_count) && data.record_count===job.payload.records.length && Number.isFinite(timestamp) && new Date(timestamp).toISOString()===data.server_received_utc);
+    }
+    async receipt(job) {
+      return this.jsonp(job.endpoint,{action:'status',batch_id:job.payload.batch_id,receipt_token:job.payload.receipt_token},15000);
+    }
+    async send(job) {
+      if(job.attempts>1) {
+        try { const old=await this.receipt(job);if(this.validReceipt(job,old))return old; } catch(_){}
+      }
+      const controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(),30000);
+      try {
+        await this.fetch(job.endpoint,{method:'POST',mode:'no-cors',credentials:'omit',redirect:'follow',referrerPolicy:'no-referrer',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:new URLSearchParams({payload:JSON.stringify(job.payload)}).toString(),signal:controller.signal});
+      } catch (_) {
+        // A network error may happen after a server commit. Check the receipt.
+      } finally {clearTimeout(timer);}
+      for(let n=0;n<2;n++) {
+        try {
+          const data=await this.receipt(job);
+          if(this.validReceipt(job,data))return data;
+          if(data && data.ok===false && data.error)throw new Error(String(data.error));
+        } catch(error) { if(n===1)throw error; }
+        if(n===0)await new Promise(resolve=>setTimeout(resolve,1200));
+      }
+      throw new Error('Google Sheets has not confirmed this batch yet. Your browser copy is retained.');
+    }
+    async flush(force) {
+      if(this.running || !endpointValid(this.session.endpoint))return;
+      this.running=true;this.changed();const attempted=new Set();
+      try {
+        while(true) {
+          const job=this.session.uploads.find(j=>!j.confirmed&&!attempted.has(j.payload.batch_id)&&(force||j.attempts<3));
+          if(!job)break;
+          attempted.add(job.payload.batch_id);job.attempts++;this.changed();
+          try {const data=await this.send(job);job.confirmed=true;job.receipt=data;job.last_error='';}
+          catch(error){job.last_error=error.message||'Save not confirmed';}
+          this.changed();
+        }
+      } finally {this.running=false;this.changed();}
+    }
+    beacon() {
+      this.queue();
+      if(!root || !root.navigator.sendBeacon)return;
+      for(const job of this.session.uploads.filter(j=>!j.confirmed).slice(0,1)) {
+        const body=new URLSearchParams({payload:JSON.stringify(job.payload)});
+        // This is best-effort only. Confirmation remains false until a receipt.
+        try{root.navigator.sendBeacon(job.endpoint,body);}catch(_){}
+      }
+    }
+    static async ping(endpoint) {
+      if(!endpointValid(endpoint))throw new Error('Paste the Google Apps Script deployment URL ending in /exec.');
+      const result=await jsonp(endpoint,{action:'ping'},15000);
+      if(!result || result.ok!==true || result.protocol!=='itd-demo-v1' || result.ready!==true)throw new Error(result&&result.error?String(result.error):'Run setup() in the matching Apps Script and deploy it as a web app.');
+      return result;
+    }
+  }
+  const api={DataClient,endpointValid,randomID};
+  if(typeof module!=='undefined'&&module.exports)module.exports=api;
+  if(root)root.ITDData=api;
+})(typeof window!=='undefined'?window:null);
+
+    /* Student results for the ITD classroom demonstration. No external dependencies. */
+(function (global) {
+  'use strict';
+
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  var DELAYS = [-640, -560, -480, -340, -200, -100, 0, 100, 200, 340, 480, 560, 640];
+  var liveReports = new Set();
+  var byContainer = new WeakMap();
+  var serial = 0;
+
+  function finiteNumber(value) {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
+  function average(values) {
+    return values.length ? values.reduce(function (sum, value) { return sum + value; }, 0) / values.length : null;
+  }
+
+  function summarize(records) {
+    var accepted = [];
+    var rejected = 0;
+    (Array.isArray(records) ? records : []).forEach(function (record, sourceIndex) {
+      if (!record || (record.phase && record.phase !== 'main')) return;
+      if (!finiteNumber(record.itd_us) || !finiteNumber(record.response_angle_deg) ||
+          record.response_angle_deg < -90 || record.response_angle_deg > 90) {
+        rejected += 1;
+        return;
+      }
+      accepted.push({
+        itd_us: Object.is(record.itd_us, -0) ? 0 : record.itd_us,
+        response_angle_deg: record.response_angle_deg,
+        confidence: Number.isInteger(record.confidence) && record.confidence >= 1 && record.confidence <= 4
+          ? record.confidence : null,
+        trial_index: finiteNumber(record.trial_index) ? record.trial_index : null,
+        source_index: sourceIndex
+      });
+    });
+    var grouped = new Map();
+    accepted.forEach(function (record) {
+      if (!grouped.has(record.itd_us)) grouped.set(record.itd_us, []);
+      grouped.get(record.itd_us).push(record);
+    });
+    var groups = Array.from(grouped.entries()).sort(function (a, b) { return a[0] - b[0]; })
+      .map(function (entry) {
+        var rows = entry[1];
+        var confidenceValues = rows.map(function (row) { return row.confidence; }).filter(finiteNumber);
+        return {
+          itd_us: entry[0],
+          records: rows,
+          n: rows.length,
+          mean_angle_deg: average(rows.map(function (row) { return row.response_angle_deg; })),
+          mean_confidence: average(confidenceValues),
+          confidence_n: confidenceValues.length
+        };
+      });
+    return { records: accepted, groups: groups, n: accepted.length, rejected: rejected };
+  }
+
+  function arcPoint(angle, cx, cy, radius) {
+    var radians = angle * Math.PI / 180;
+    return { x: cx + radius * Math.sin(radians), y: cy - radius * Math.cos(radians) };
+  }
+
+  function arrivalOffsets(itdUs) {
+    // Positive ITD means right ear first: tLeft - tRight > 0.
+    return { left_us: Math.max(itdUs, 0), right_us: Math.max(-itdUs, 0) };
+  }
+
+  function signed(value, decimals) {
+    var magnitude = Math.abs(value).toFixed(decimals || 0);
+    return value < 0 ? '\u2212' + magnitude : value > 0 ? '+' + magnitude : magnitude;
+  }
+
+  function positionLabel(angle) {
+    if (Math.abs(angle) < 0.05) return 'Centered (0.0\u00b0)';
+    return Math.abs(angle).toFixed(1) + '\u00b0 ' + (angle < 0 ? 'left' : 'right');
+  }
+
+  function delayLabel(itdUs) {
+    return itdUs === 0 ? 'Both ears together \u00b7 0 \u00b5s'
+      : (itdUs < 0 ? 'Left' : 'Right') + ' ear first \u00b7 ' + Math.abs(itdUs) + ' \u00b5s';
+  }
+
+  function element(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  function svgNode(tag, attributes, text) {
+    var node = document.createElementNS(SVG_NS, tag);
+    Object.keys(attributes || {}).forEach(function (name) { node.setAttribute(name, String(attributes[name])); });
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  function svgText(svg, x, y, text, options) {
+    var attributes = Object.assign({ x: x, y: y, 'class': 'itd-r-svg-text' }, options || {});
+    var node = svgNode('text', attributes, text);
+    svg.appendChild(node);
+    return node;
+  }
+
+  function accessibleSvg(title, description, id) {
+    var svg = svgNode('svg', { 'class': 'itd-r-svg', role: 'img', 'aria-labelledby': id + '-title ' + id + '-desc' });
+    svg.appendChild(svgNode('title', { id: id + '-title' }, title));
+    svg.appendChild(svgNode('desc', { id: id + '-desc' }, description));
+    return svg;
+  }
+
+  function resetSvg(svg) {
+    Array.from(svg.children).forEach(function (child) {
+      if (child.tagName !== 'title' && child.tagName !== 'desc') child.remove();
+    });
+  }
+
+  function diamondPath(x, y, radius) {
+    return 'M' + x + ',' + (y - radius) + 'L' + (x + radius) + ',' + y +
+      'L' + x + ',' + (y + radius) + 'L' + (x - radius) + ',' + y + 'Z';
+  }
+
+  function render(container, records, options) {
+    options = options || {};
+    if (typeof container === 'string') container = document.querySelector(container);
+    if (!container || typeof container.appendChild !== 'function') throw new TypeError('ITDReport.render needs a DOM container.');
+    if (byContainer.has(container)) byContainer.get(container).destroy();
+
+    var summary = summarize(records);
+    var id = 'itd-report-' + (++serial);
+    var root = element('article', 'itd-report');
+    root.setAttribute('aria-labelledby', id + '-heading');
+    var heading = element('h1', 'itd-r-title', 'Your sound-position results');
+    heading.id = id + '-heading';
+    root.appendChild(heading);
+    root.appendChild(element('p', 'itd-r-intro', summary.n + ' completed response' + (summary.n === 1 ? '' : 's') +
+      ' across ' + summary.groups.length + ' timing condition' + (summary.groups.length === 1 ? '' : 's') + '.'));
+    var actionRow = element('div', 'itd-r-actions itd-r-no-print');
+    var actionStatus = element('p', 'itd-r-action-status itd-r-no-print');
+    actionStatus.setAttribute('role', 'status');
+    actionStatus.setAttribute('aria-live', 'polite');
+
+    function addAction(label, callback, kind) {
+      if (typeof callback !== 'function') return;
+      var button = element('button', 'itd-r-button', label);
+      button.type = 'button';
+      button.addEventListener('click', function () {
+        var result;
+        try {
+          result = callback();
+        } catch (error) {
+          actionStatus.textContent = 'That action could not be completed. Your results are still shown here.';
+          return;
+        }
+        if (result && typeof result.then === 'function') {
+          button.disabled = true;
+          if (kind === 'save') actionStatus.textContent = 'Retrying the save\u2026';
+          Promise.resolve(result).then(function (value) {
+            if (kind === 'save') {
+              actionStatus.textContent = value === false
+                ? 'The save is not confirmed. You can download your responses as a backup.' : '';
+            }
+          }).catch(function () {
+            actionStatus.textContent = kind === 'save'
+              ? 'The save is not confirmed. You can download your responses as a backup.'
+              : 'That action could not be completed. Your results are still shown here.';
+          }).finally(function () { button.disabled = false; });
+        }
+      });
+      actionRow.appendChild(button);
+    }
+    addAction('Download responses', options.onDownloadCSV, 'download');
+    addAction('Print / save PDF', options.onPrint, 'print');
+    addAction('Retry saving', options.onRetrySave, 'save');
+    if (actionRow.childElementCount) root.appendChild(actionRow);
+    root.appendChild(actionStatus);
+    if (summary.rejected) root.appendChild(element('p', 'itd-r-note', summary.rejected +
+      ' incomplete or invalid response' + (summary.rejected === 1 ? ' was' : 's were') + ' omitted from the plots.'));
+
+    container.replaceChildren(root);
+    if (!summary.n) {
+      root.appendChild(element('p', 'itd-r-empty', 'There are no completed main-trial responses to display yet.'));
+      var emptyInstance = { resize: function () {}, selectDelay: function () { return false; },
+        getSummary: function () { return summary; }, destroy: function () { root.remove(); byContainer.delete(container); } };
+      byContainer.set(container, emptyInstance);
+      return emptyInstance;
+    }
+
+    var selected = summary.groups.some(function (group) { return group.itd_us === 480; }) ? 480
+      : summary.groups.some(function (group) { return group.itd_us === 0; }) ? 0 : summary.groups[0].itd_us;
+    var plotSection = element('section', 'itd-report-section');
+    plotSection.appendChild(element('h2', '', '1. How timing changed your responses'));
+    plotSection.appendChild(element('p', 'itd-r-description', 'Each small dot is one of your responses. Diamonds show your average at each delay.'));
+    var scatterWrap = element('div', 'itd-r-scatter-wrap');
+    var scatter = accessibleSvg('Your reported position by interaural time difference',
+      'Negative timing values mean the left ear received the sound first; positive values mean the right ear received it first. ' +
+      'The vertical axis is your chosen position, from 90 degrees left to 90 degrees right. These are reported positions, not accuracy scores.', id + '-scatter');
+    scatterWrap.appendChild(scatter);
+    plotSection.appendChild(scatterWrap);
+    var key = element('div', 'itd-r-key');
+    [['dot', 'One response'], ['diamond', 'Average']].forEach(function (entry) {
+      var item = element('span');
+      var swatch = element('i', 'itd-r-key-' + entry[0]);
+      swatch.setAttribute('aria-hidden', 'true');
+      item.appendChild(swatch);
+      item.appendChild(document.createTextNode(entry[1]));
+      key.appendChild(item);
+    });
+    plotSection.appendChild(key);
+    plotSection.appendChild(element('p', 'itd-r-note', 'Overlapping responses can share a position. The line connects your averages; it is not a correct-answer curve.'));
+    root.appendChild(plotSection);
+
+    var selectedSection = element('section', 'itd-report-section');
+    selectedSection.appendChild(element('h2', '', '2. Look at your repeated responses'));
+    var selectedRow = element('div', 'itd-r-selected-row');
+    var field = element('div', 'itd-r-field itd-r-no-print');
+    var label = element('label', '', 'Choose a timing condition');
+    label.htmlFor = id + '-delay';
+    var select = element('select', 'itd-r-select');
+    select.id = id + '-delay';
+    summary.groups.forEach(function (group) {
+      var option = element('option', '', delayLabel(group.itd_us));
+      option.value = String(group.itd_us);
+      select.appendChild(option);
+    });
+    select.value = String(selected);
+    field.appendChild(label);
+    field.appendChild(select);
+    selectedRow.appendChild(field);
+    var selectedStats = element('div', 'itd-r-selected-stats');
+    selectedStats.setAttribute('aria-live', 'polite');
+    selectedRow.appendChild(selectedStats);
+    selectedSection.appendChild(selectedRow);
+    var selectedLabel = element('p', 'itd-r-selected-label');
+    selectedSection.appendChild(selectedLabel);
+    var detailRow = element('div', 'itd-r-detail-row');
+    var arcWrap = element('div', 'itd-r-arc-wrap');
+    var arc = accessibleSvg('Your responses on the front semicircle', '', id + '-arc');
+    arcWrap.appendChild(arc);
+    detailRow.appendChild(arcWrap);
+    var responseTableWrap = element('div', 'itd-r-response-table-wrap');
+    var responseTable = element('table', 'itd-r-table');
+    var responseCaption = element('caption', '', 'Responses at this delay');
+    responseTable.appendChild(responseCaption);
+    var responseHead = element('thead');
+    var responseHeader = element('tr');
+    ['Trial', 'Position', 'Certainty (1\u20134)'].forEach(function (text) {
+      var th = element('th', '', text); th.scope = 'col'; responseHeader.appendChild(th);
+    });
+    responseHead.appendChild(responseHeader);
+    responseTable.appendChild(responseHead);
+    var responseBody = element('tbody');
+    responseTable.appendChild(responseBody);
+    responseTableWrap.appendChild(responseTable);
+    detailRow.appendChild(responseTableWrap);
+    selectedSection.appendChild(detailRow);
+    selectedSection.appendChild(element('p', 'itd-r-note', 'Certainty records how sure you felt. It does not tell us whether a particular angle is correct.'));
+    root.appendChild(selectedSection);
+
+    var mechanismSection = element('section', 'itd-report-section');
+    mechanismSection.appendChild(element('h2', '', '3. What changed between your ears?'));
+    mechanismSection.appendChild(element('p', 'itd-r-description',
+      'The interaural time difference (ITD) is the difference in arrival time between the ears. ' +
+      'The same noise waveform was sent to both ears at equal programmed levels. On most trials, one copy was shifted slightly later than the other.'));
+    var timingLabel = element('p', 'itd-r-timing-label');
+    mechanismSection.appendChild(timingLabel);
+    var timingWrap = element('div', 'itd-r-timing-wrap');
+    var timing = accessibleSvg('Timing of the same waveform at the two ears', '', id + '-timing');
+    timingWrap.appendChild(timing);
+    mechanismSection.appendChild(timingWrap);
+    mechanismSection.appendChild(element('p', 'itd-r-note', 'Schematic waveform; the delay is exaggerated for visibility. 1,000 microseconds (\u00b5s) = 1 millisecond (ms).'));
+    mechanismSection.appendChild(element('p', 'itd-r-description',
+      'Earlier arrival at one ear usually shifts the perceived sound toward that side. Larger timing differences can shift it farther to the side. ' +
+      'Your graph shows how your own reported positions changed with this cue.'));
+    if (typeof options.onReplay === 'function') {
+      var replayRow = element('div', 'itd-r-replays itd-r-no-print');
+      var replayButtons = [];
+      [[-640, 'Left first \u00b7 640 \u00b5s'], [0, 'Together \u00b7 0 \u00b5s'], [640, 'Right first \u00b7 640 \u00b5s']].forEach(function (item) {
+        var button = element('button', 'itd-r-button', item[1]);
+        button.type = 'button';
+        button.setAttribute('aria-label', 'Play example: ' + item[1]);
+        button.addEventListener('click', async function () {
+          replayButtons.forEach(function (node) { node.disabled = true; });
+          try { await options.onReplay(item[0]); }
+          catch (error) { actionStatus.textContent = 'The example could not play. Check that audio is enabled.'; }
+          finally { replayButtons.forEach(function (node) { node.disabled = false; }); }
+        });
+        replayButtons.push(button);
+        replayRow.appendChild(button);
+      });
+      mechanismSection.appendChild(replayRow);
+    }
+    mechanismSection.appendChild(element('p', 'itd-r-note',
+      'A headphone sound may seem to be inside your head. The semicircle records its apparent left\u2013right position; this activity does not test front\u2013back discrimination.'));
+    root.appendChild(mechanismSection);
+
+    var reflection = element('section', 'itd-report-section itd-r-reflection');
+    reflection.appendChild(element('h2', '', 'Questions to consider'));
+    var questions = element('ol');
+    [
+      'How did the ear receiving the sound first relate to where you placed your response?',
+      'Did larger timing differences move your responses farther from the center? Was the pattern similar on the left and right?',
+      'At which delays were your repeated responses most consistent? How did that compare with your certainty?'
+    ].forEach(function (text) { questions.appendChild(element('li', '', text)); });
+    reflection.appendChild(questions);
+    root.appendChild(reflection);
+
+    var summaryDetails = element('details', 'itd-r-summary-details');
+    summaryDetails.appendChild(element('summary', 'itd-r-no-print', 'View averages for every delay'));
+    var summaryTable = element('table', 'itd-r-table itd-r-summary-table');
+    summaryTable.appendChild(element('caption', '', 'Your observed averages'));
+    var summaryHead = element('thead'), summaryHeader = element('tr');
+    ['ITD (\u00b5s)', 'Responses', 'Average position', 'Mean certainty'].forEach(function (text) {
+      var th = element('th', '', text); th.scope = 'col'; summaryHeader.appendChild(th);
+    });
+    summaryHead.appendChild(summaryHeader); summaryTable.appendChild(summaryHead);
+    var summaryBody = element('tbody');
+    summary.groups.forEach(function (group) {
+      var row = element('tr');
+      [signed(group.itd_us), String(group.n), positionLabel(group.mean_angle_deg),
+        group.mean_confidence === null ? '\u2014' : group.mean_confidence.toFixed(1) + ' / 4'].forEach(function (value) {
+        row.appendChild(element('td', '', value));
+      });
+      summaryBody.appendChild(row);
+    });
+    summaryTable.appendChild(summaryBody); summaryDetails.appendChild(summaryTable); root.appendChild(summaryDetails);
+
+    var scatterMarks = [];
+    var isDestroyed = false;
+    var pendingDraw = null;
+    function selectedGroup() {
+      return summary.groups.find(function (group) { return group.itd_us === selected; });
+    }
+
+    function drawScatter() {
+      resetSvg(scatter);
+      var width = Math.max(220, Math.round(scatterWrap.getBoundingClientRect().width || 640));
+      var height = width < 450 ? 328 : 365;
+      var margin = { left: 78, right: 15, top: 20, bottom: 86 };
+      var right = width - margin.right, bottom = height - margin.bottom;
+      var domainMin = Math.min(-640, summary.groups[0].itd_us);
+      var domainMax = Math.max(640, summary.groups[summary.groups.length - 1].itd_us);
+      var padding = (domainMax - domainMin) * 0.035;
+      var xMin = domainMin - padding, xMax = domainMax + padding;
+      var x = function (value) { return margin.left + 7 + (value - xMin) / (xMax - xMin) * (right - margin.left - 14); };
+      var y = function (value) { return bottom - 7 - (value + 90) / 180 * (bottom - margin.top - 14); };
+      scatter.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+      scatter.setAttribute('height', String(height));
+      var defs = svgNode('defs');
+      var clip = svgNode('clipPath', { id: id + '-clip' });
+      clip.appendChild(svgNode('rect', { x: margin.left, y: margin.top, width: right - margin.left, height: bottom - margin.top }));
+      defs.appendChild(clip); scatter.appendChild(defs);
+      scatter.appendChild(svgNode('rect', { x: margin.left, y: margin.top, width: right - margin.left, height: bottom - margin.top,
+        'class': 'itd-r-chart-frame' }));
+      [-90, -45, 0, 45, 90].forEach(function (tick) {
+        scatter.appendChild(svgNode('line', { x1: margin.left, y1: y(tick), x2: right, y2: y(tick),
+          'class': tick === 0 ? 'itd-r-grid itd-r-zero-grid' : 'itd-r-grid' }));
+        svgText(scatter, margin.left - 9, y(tick) + 4, tick === -90 ? '90\u00b0 L' : tick === 90 ? '90\u00b0 R' : signed(tick) + '\u00b0',
+          { 'text-anchor': 'end' });
+      });
+      scatter.appendChild(svgNode('line', { x1: x(0), y1: margin.top, x2: x(0), y2: bottom, 'class': 'itd-r-zero-grid' }));
+      var selectedLine = svgNode('line', { x1: x(selected), y1: margin.top, x2: x(selected), y2: bottom, 'class': 'itd-r-selected-line' });
+      scatter.appendChild(selectedLine);
+      scatterMarks = [{ type: 'selectedLine', node: selectedLine, x: x }];
+      var marksGroup = svgNode('g', { 'clip-path': 'url(#' + id + '-clip)' });
+      summary.records.forEach(function (record) {
+        var dot = svgNode('circle', { cx: x(record.itd_us), cy: y(record.response_angle_deg), r: 3.5,
+          'class': 'itd-r-observation' + (record.itd_us === selected ? ' itd-r-active-observation' : '') });
+        dot.appendChild(svgNode('title', {}, signed(record.itd_us) + ' \u00b5s; ' + positionLabel(record.response_angle_deg)));
+        marksGroup.appendChild(dot);
+        scatterMarks.push({ type: 'observation', itd: record.itd_us, node: dot });
+      });
+      var meanPath = summary.groups.map(function (group, index) {
+        return (index ? 'L' : 'M') + x(group.itd_us) + ',' + y(group.mean_angle_deg);
+      }).join(' ');
+      marksGroup.appendChild(svgNode('path', { d: meanPath, 'class': 'itd-r-mean-line' }));
+      summary.groups.forEach(function (group) {
+        var mark = svgNode('path', { d: diamondPath(x(group.itd_us), y(group.mean_angle_deg), 5.4),
+          'class': 'itd-r-mean-mark' });
+        mark.appendChild(svgNode('title', {}, delayLabel(group.itd_us) + '; average ' + positionLabel(group.mean_angle_deg)));
+        var target = svgNode('circle', { cx: x(group.itd_us), cy: y(group.mean_angle_deg), r: width < 450 ? 9 : 13,
+          'class': 'itd-r-mean-hit', 'data-itd-us': group.itd_us });
+        target.appendChild(svgNode('title', {}, 'Show ' + delayLabel(group.itd_us)));
+        target.addEventListener('click', function () { selectDelay(group.itd_us); });
+        marksGroup.appendChild(mark); marksGroup.appendChild(target);
+      });
+      scatter.appendChild(marksGroup);
+
+      var ticks = width < 410 ? [domainMin, 0, domainMax] : width < 660 ? [domainMin, -340, 0, 340, domainMax]
+        : DELAYS.filter(function (value) { return value >= domainMin && value <= domainMax; });
+      var tickGroup = svgNode('g'); scatter.appendChild(tickGroup);
+      function drawXTicks(values) {
+        tickGroup.replaceChildren();
+        values.forEach(function (tick) {
+          tickGroup.appendChild(svgNode('line', { x1: x(tick), y1: bottom, x2: x(tick), y2: bottom + 5, 'class': 'itd-r-grid' }));
+          svgText(tickGroup, x(tick), bottom + 22, signed(tick), { 'text-anchor': 'middle' });
+        });
+      }
+      drawXTicks(ticks);
+      var tickBoxes = Array.from(tickGroup.querySelectorAll('text')).map(function (node) { return node.getBoundingClientRect(); });
+      if (tickBoxes.some(function (box, index) { return index > 0 && box.left < tickBoxes[index - 1].right + 4; })) {
+        drawXTicks(width < 500 ? [domainMin, 0, domainMax] : [domainMin, -340, 0, 340, domainMax]);
+      }
+      svgText(scatter, 15, (margin.top + bottom) / 2, 'Reported position (\u00b0)',
+        { 'text-anchor': 'middle', transform: 'rotate(-90 15 ' + ((margin.top + bottom) / 2) + ')' });
+      svgText(scatter, margin.left, height - 39, width < 300 ? 'Left first' : 'Left ear earlier');
+      svgText(scatter, right, height - 39, width < 300 ? 'Right first' : 'Right ear earlier', { 'text-anchor': 'end' });
+      svgText(scatter, (margin.left + right) / 2, height - 13, width < 410 ? 'ITD (\u00b5s)' : 'Time difference between ears (\u00b5s)',
+        { 'text-anchor': 'middle' });
+    }
+
+    function drawArc() {
+      resetSvg(arc);
+      var group = selectedGroup();
+      var width = Math.max(220, Math.round(arcWrap.getBoundingClientRect().width || 380));
+      var radius = Math.min(140, (width - 70) / 2);
+      var cx = width / 2, cy = radius + 50, height = radius + 107;
+      arc.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+      arc.setAttribute('height', String(height));
+      arc.querySelector('desc').textContent = delayLabel(selected) + '. ' + group.records.map(function (record) {
+        return positionLabel(record.response_angle_deg) + ', certainty ' + (record.confidence === null ? 'not recorded' : record.confidence);
+      }).join('; ') + '. Average ' + positionLabel(group.mean_angle_deg) + '.';
+      arc.appendChild(svgNode('path', { d: 'M' + (cx - radius) + ',' + cy + 'A' + radius + ',' + radius + ' 0 0 1 ' + (cx + radius) + ',' + cy,
+        'class': 'itd-r-arc-outline' }));
+      svgText(arc, cx - radius, cy + 25, 'Left', { 'text-anchor': 'middle' });
+      svgText(arc, cx, cy - radius - 29, 'Center', { 'text-anchor': 'middle' });
+      svgText(arc, cx + radius, cy + 25, 'Right', { 'text-anchor': 'middle' });
+      arc.appendChild(svgNode('circle', { cx: cx, cy: cy, r: 20, 'class': 'itd-r-head' }));
+      arc.appendChild(svgNode('path', { d: 'M' + (cx - 6) + ',' + (cy - 20) + 'L' + cx + ',' + (cy - 29) + 'L' + (cx + 6) + ',' + (cy - 20),
+        'class': 'itd-r-head-nose' }));
+      group.records.forEach(function (record, index) {
+        // A tiny radial offset separates equal-angle repeats without changing their angular position.
+        var point = arcPoint(record.response_angle_deg, cx, cy, radius + ((index % 5) - 2) * 2.3);
+        var dot = svgNode('circle', { cx: point.x, cy: point.y, r: 4.5, 'class': 'itd-r-arc-dot' });
+        dot.appendChild(svgNode('title', {}, positionLabel(record.response_angle_deg) + '; certainty ' +
+          (record.confidence === null ? 'not recorded' : record.confidence + ' of 4')));
+        arc.appendChild(dot);
+      });
+      var meanPoint = arcPoint(group.mean_angle_deg, cx, cy, radius + 14);
+      var meanMark = svgNode('path', { d: diamondPath(meanPoint.x, meanPoint.y, 6), 'class': 'itd-r-mean-mark' });
+      meanMark.appendChild(svgNode('title', {}, 'Average: ' + positionLabel(group.mean_angle_deg)));
+      arc.appendChild(meanMark);
+    }
+
+    function drawTiming() {
+      resetSvg(timing);
+      var width = Math.max(220, Math.round(timingWrap.getBoundingClientRect().width || 640));
+      var height = 158, left = 87, right = width - 18;
+      var maximumDelay = Math.max(640, Math.abs(selected));
+      var maximumShift = Math.min(78, (right - left) * 0.29);
+      var waveWidth = right - left - maximumShift;
+      var offsets = arrivalOffsets(selected);
+      timing.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+      timing.setAttribute('height', String(height));
+      timing.querySelector('desc').textContent = 'The waveform is the same in both rows. The left ear begins ' +
+        (offsets.left_us / 1000).toFixed(3) + ' milliseconds after the first ear; the right ear begins ' +
+        (offsets.right_us / 1000).toFixed(3) + ' milliseconds after the first ear. Delay is exaggerated in this schematic.';
+      var waveform = [];
+      for (var index = 0; index <= 100; index += 1) {
+        var t = index / 100;
+        var envelope = Math.min(1, t * 12, (1 - t) * 12);
+        waveform.push((Math.sin(t * 139) + 0.55 * Math.sin(t * 277 + 0.8) + 0.3 * Math.cos(t * 409)) * envelope / 1.85);
+      }
+      [['Left ear', offsets.left_us, 43], ['Right ear', offsets.right_us, 113]].forEach(function (row) {
+        var start = left + row[1] / maximumDelay * maximumShift;
+        var path = waveform.map(function (sample, index) {
+          return (index ? 'L' : 'M') + (start + index / 100 * waveWidth).toFixed(2) + ',' + (row[2] - sample * 18).toFixed(2);
+        }).join(' ');
+        svgText(timing, 0, row[2] - 3, row[0]);
+        svgText(timing, 0, row[2] + 16, '+' + (row[1] / 1000).toFixed(3) + ' ms', { 'class': 'itd-r-svg-text itd-r-muted-svg' });
+        timing.appendChild(svgNode('line', { x1: left, y1: row[2], x2: right, y2: row[2], 'class': 'itd-r-grid' }));
+        timing.appendChild(svgNode('line', { x1: start, y1: row[2] - 25, x2: start, y2: row[2] + 25, 'class': 'itd-r-wave-onset' }));
+        timing.appendChild(svgNode('path', { d: path, 'class': 'itd-r-wave' }));
+      });
+      svgText(timing, right, 153, 'Time \u2192', { 'text-anchor': 'end' });
+    }
+
+    function updateSelection() {
+      var group = selectedGroup();
+      selectedStats.replaceChildren();
+      selectedStats.appendChild(element('strong', '', 'Average position: ' + positionLabel(group.mean_angle_deg)));
+      selectedStats.appendChild(element('span', '', group.n + ' response' + (group.n === 1 ? '' : 's') +
+        (group.mean_confidence === null ? '' : ' \u00b7 Mean certainty: ' + group.mean_confidence.toFixed(1) + ' / 4')));
+      selectedLabel.textContent = delayLabel(selected) + ' (' + (Math.abs(selected) / 1000).toFixed(3) + ' ms difference)';
+      timingLabel.textContent = selected === 0 ? 'Selected condition: both copies arrive together.'
+        : 'Selected condition: the ' + (selected < 0 ? 'left' : 'right') + ' ear receives the waveform ' + Math.abs(selected) + ' \u00b5s earlier.';
+      responseBody.replaceChildren();
+      group.records.forEach(function (record) {
+        var row = element('tr');
+        [record.trial_index === null ? '\u2014' : String(record.trial_index), positionLabel(record.response_angle_deg),
+          record.confidence === null ? '\u2014' : String(record.confidence)].forEach(function (value) {
+          row.appendChild(element('td', '', value));
+        });
+        responseBody.appendChild(row);
+      });
+      scatterMarks.forEach(function (mark) {
+        if (mark.type === 'selectedLine') {
+          mark.node.setAttribute('x1', String(mark.x(selected))); mark.node.setAttribute('x2', String(mark.x(selected)));
+        } else mark.node.setAttribute('class', 'itd-r-observation' + (mark.itd === selected ? ' itd-r-active-observation' : ''));
+      });
+      drawArc(); drawTiming();
+    }
+
+    function selectDelay(itdUs) {
+      if (!summary.groups.some(function (group) { return group.itd_us === itdUs; })) return false;
+      selected = itdUs; select.value = String(selected); updateSelection(); return true;
+    }
+
+    function resize() {
+      if (isDestroyed) return;
+      drawScatter(); updateSelection();
+    }
+
+    function scheduleResize() {
+      if (pendingDraw !== null || isDestroyed) return;
+      pendingDraw = global.requestAnimationFrame(function () { pendingDraw = null; resize(); });
+    }
+
+    select.addEventListener('change', function () { selectDelay(Number(select.value)); });
+    var observer = typeof global.ResizeObserver === 'function' ? new global.ResizeObserver(scheduleResize) : null;
+    if (observer) observer.observe(root);
+    else global.addEventListener('resize', scheduleResize);
+    var detailsWereOpen = false;
+    function beforePrint() { detailsWereOpen = summaryDetails.open; summaryDetails.open = true; resize(); }
+    function afterPrint() { summaryDetails.open = detailsWereOpen; scheduleResize(); }
+    global.addEventListener('beforeprint', beforePrint);
+    global.addEventListener('afterprint', afterPrint);
+
+    var instance = {
+      resize: resize,
+      selectDelay: selectDelay,
+      getSummary: function () { return summary; },
+      destroy: function () {
+        isDestroyed = true;
+        if (observer) observer.disconnect();
+        else global.removeEventListener('resize', scheduleResize);
+        global.removeEventListener('beforeprint', beforePrint);
+        global.removeEventListener('afterprint', afterPrint);
+        if (pendingDraw !== null) global.cancelAnimationFrame(pendingDraw);
+        liveReports.delete(instance); byContainer.delete(container); root.remove();
+      }
+    };
+    liveReports.add(instance); byContainer.set(container, instance); resize();
+    return instance;
+  }
+
+  global.ITDReport = {
+    render: render,
+    resize: function () { liveReports.forEach(function (report) { report.resize(); }); },
+    summarize: summarize,
+    geometry: { arcPoint: arcPoint, arrivalOffsets: arrivalOffsets },
+    conditions: DELAYS.slice()
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+    (function () {
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const STORAGE_PREFIX='itd-demo-v1:run:';
+  const ACTIVE_KEY='itd-demo-v1:active';
+  const AUDIO={durationMs:400,rampMs:20,lowHz:200,highHz:1200,rms:0.08};
+  const GAP_MS=400;
+  const state={session:null,client:null,context:null,gain:null,source:null,playReject:null,current:null,responding:false,selected:null,token:0,pendingTimer:null,report:null,storageOK:true,breakNext:null,screen:'welcome',windowFocused:true,soundRequest:0};
+  let previousSession=null;
+  const round=(n,d)=>Number(n.toFixed(d));
+  const nowUTC=()=>new Date().toISOString();
+  const seed=()=>crypto.getRandomValues(new Uint32Array(1))[0];
+  const mainRecords=s=>s.records.filter(r=>r.phase==='main');
+  const practiceRecords=s=>s.records.filter(r=>r.phase==='practice');
+
+  function show(name) {
+    state.screen=name;document.body.dataset.screen=name;
+    document.querySelectorAll('main > .screen').forEach(el=>{el.hidden=el.id!==name;});
+    $('pauseButton').hidden=name!=='trial';
+    $('saveArea').hidden=!state.session;
+    $('headerProgress').textContent=state.session ? mainRecords(state.session).length+' / 65 main trials' : '';
+    if(name!=='trial'&&name!=='paused')window.scrollTo(0,0);
+  }
+  function message(id,text) {const el=$(id);el.textContent=text||'';el.hidden=!text;}
+  function markerHidden(id,hidden) {$(id).toggleAttribute('hidden',hidden);}
+  function resetSetupUI() {
+    $('volume').value='0.3';$('volumeValue').textContent='30%';
+    $('headphoneType').value='wired';$('headphoneModel').value='';$('centeredCheck').value='';
+    ['processingOff','channelsVerified','comfortable'].forEach(id=>{$(id).checked=false;});
+    $('wantFullscreen').checked=true;$('balanceNote').hidden=true;
+    message('setupError','');message('instructionError','');
+  }
+  function persist(session) {
+    if(!session)return false;
+    try {localStorage.setItem(STORAGE_PREFIX+session.run_id,JSON.stringify(session));state.storageOK=true;return true;}
+    catch(_){state.storageOK=false;return false;}
+  }
+  function activate(session) {
+    state.session=session;
+    try {localStorage.setItem(ACTIVE_KEY,session.run_id);}catch(_){state.storageOK=false;}
+    state.client=new ITDData.DataClient(session,{persist:()=>persist(session),onChange:()=>{if(state.session===session)updateSaveStatus();}});
+    persist(session);updateSaveStatus();
+  }
+  function updateSaveStatus() {
+    const s=state.session;if(!s)return;
+    const confirmed=state.client?state.client.confirmedCount():0;
+    const total=s.records.length;
+    const local=state.storageOK?'A recovery copy is saved in this browser.':'Browser storage is unavailable. Download a recovery copy before leaving.';
+    if(!s.endpoint) $('saveStatus').textContent='Local test mode — Google Sheets is not connected. '+local;
+    else if(state.client.running) $('saveStatus').textContent='Saving… Google Sheets has confirmed '+confirmed+' of '+total+' completed responses. '+local;
+    else if(total && confirmed===total) $('saveStatus').textContent='Saved to Google Sheets: '+confirmed+' completed responses confirmed'+(s.stage==='complete'?' (65 main + 3 practice).':'.')+' '+local;
+    else if(total) $('saveStatus').textContent='Google Sheets has confirmed '+confirmed+' of '+total+' completed responses. Retry saving if needed. '+local;
+    else $('saveStatus').textContent='Responses will be saved to the class sheet. '+local;
+    $('retrySave').disabled=!s.endpoint||!!state.client.running;
+    $('downloadCSV').disabled=!total;
+    $('downloadBackup').disabled=!s;
+  }
+  function queueAndSave() {
+    if(!state.client)return;
+    state.client.queue();persist(state.session);
+    state.client.flush(false).catch(()=>{});
+  }
+  function loadPrevious() {
+    try {
+      const id=localStorage.getItem(ACTIVE_KEY);if(!id)return;
+      const s=JSON.parse(localStorage.getItem(STORAGE_PREFIX+id)||'null');
+      if(!s||s.schema_version!==1||!Array.isArray(s.records)||!Array.isArray(s.schedule)||s.schedule.length!==65||!Array.isArray(s.practice)||s.practice.length!==3)return;
+      previousSession=s;$('resumePanel').hidden=false;
+      $('resumeButton').textContent=s.stage==='complete'?'View previous results / retry save':'Resume previous session';
+    }catch(_){/* Leave any unreadable previous storage untouched. */}
+  }
+  async function ensureAudio() {
+    if(!state.context) {
+      const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+      if(!AudioContextClass)throw new Error('This browser does not support Web Audio. Please use a current Chrome, Firefox, Edge, or Safari browser.');
+      state.context=new AudioContextClass({latencyHint:'interactive'});
+      state.gain=state.context.createGain();
+      state.gain.channelCount=2;state.gain.channelCountMode='explicit';state.gain.channelInterpretation='discrete';
+      state.gain.connect(state.context.destination);
+      state.context.addEventListener('statechange',()=>{
+        if(state.context.state!=='running' && state.current && (state.screen==='trial'))interrupt('audio_'+state.context.state);
+      });
+    }
+    if(state.context.state!=='running')await state.context.resume();
+    if(state.context.state!=='running')throw new Error('Audio could not start. Click again and check your browser sound settings.');
+    state.gain.gain.value=state.session&&state.session.setup?state.session.setup.volume_gain:Number($('volume').value);
+    return state.context;
+  }
+  function stopSound() {
+    const source=state.source;state.source=null;
+    const reject=state.playReject;state.playReject=null;
+    if(source){source.onended=null;try{source.stop();}catch(_){}try{source.disconnect();}catch(_){}}
+    if(reject)reject(new Error('PLAYBACK_CANCELLED'));
+  }
+  function playBuffer(left,right) {
+    const ctx=state.context;
+    const buffer=ctx.createBuffer(2,left.length,ctx.sampleRate);
+    buffer.copyToChannel(left,0);buffer.copyToChannel(right,1);
+    const source=ctx.createBufferSource();source.buffer=buffer;source.connect(state.gain);
+    const start=ctx.currentTime+0.075;
+    state.source=source;
+    const finished=new Promise((resolve,reject)=>{
+      state.playReject=reject;
+      source.onended=()=>{
+        try{source.disconnect();}catch(_){}
+        if(state.source===source){state.source=null;state.playReject=null;}
+        resolve();
+      };
+      source.start(start);
+    });
+    return {start,finished,duration:buffer.duration};
+  }
+  async function setupSound(side) {
+    const request=++state.soundRequest;
+    message('setupError','');stopSound();
+    try {
+      await ensureAudio();
+      if(request!==state.soundRequest||state.screen!=='setup')return;
+      stopSound();state.gain.gain.value=Number($('volume').value);
+      const sound=ITDAudio.synthesize({...AUDIO,sampleRate:state.context.sampleRate,itdUs:0,seed:13757});
+      const silent=new Float32Array(sound.left.length);
+      await playBuffer(side==='right'?silent:sound.left,side==='left'?silent:sound.right).finished;
+    }catch(error){if(error.message!=='PLAYBACK_CANCELLED')message('setupError',error.message);}
+  }
+  async function fullScreen() {
+    try {if(!document.fullscreenElement && document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else if(document.fullscreenElement)await document.exitFullscreen();}catch(_){}
+  }
+  function enlargeArcLabels() {
+    const m=$('responseArc').getScreenCTM();if(!m||!m.a)return;
+    $('responseArc').querySelectorAll('text').forEach(t=>{t.style.fontSize=(17/Math.abs(m.a))+'px';});
+  }
+  function startAt(phase) {
+    const s=state.session;s.stage=phase;state.current=null;persist(s);nextTrial();
+  }
+  function makeCurrent() {
+    const s=state.session;
+    const phase=s.stage;
+    const index=(phase==='practice'?practiceRecords(s):mainRecords(s)).length;
+    const spec=(phase==='practice'?s.practice:s.schedule)[index];
+    if(!spec)return null;
+    const recovered=s.in_progress;
+    const match=recovered&&recovered.phase===phase&&recovered.index===index;
+    return {phase,index,spec,interrupted_attempts:match?recovered.interrupted_attempts:0,interrupt_reasons:match?recovered.interrupt_reasons:[],window_blurred:match?recovered.window_blurred:false,tab_hidden:match?recovered.tab_hidden:false};
+  }
+  function saveInProgress() {
+    if(!state.current||!state.session)return;
+    const c=state.current;
+    state.session.in_progress={phase:c.phase,index:c.index,interrupted_attempts:c.interrupted_attempts,interrupt_reasons:c.interrupt_reasons,window_blurred:c.window_blurred,tab_hidden:c.tab_hidden};
+    persist(state.session);
+  }
+  function nextTrial() {
+    state.pendingTimer=null;
+    if(!state.session)return;
+    const phase=state.session.stage;
+    if(phase==='practice'&&practiceRecords(state.session).length>=3){state.session.stage='practice_done';queueAndSave();showBreak('main');return;}
+    if(phase==='main'&&mainRecords(state.session).length>=65){finishRun();return;}
+    state.current=makeCurrent();if(!state.current)return;
+    playCurrent();
+  }
+  async function playCurrent() {
+    const c=state.current;if(!c)return;
+    const token=++state.token;state.responding=false;state.selected=null;
+    clearTimeout(state.pendingTimer);stopSound();
+    show('trial');$('responseWrap').hidden=true;$('listening').hidden=false;
+    $('trialProgress').textContent=(c.phase==='practice'?'Practice ':'Trial ')+(c.index+1)+' of '+(c.phase==='practice'?3:65);
+    $('trialPrompt').textContent='Listen to both sounds';
+    markerHidden('responseMarker',true);markerHidden('hoverMarker',true);
+    document.querySelectorAll('[data-confidence]').forEach(b=>{b.disabled=true;});
+    $('confidencePrompt').textContent='Select a location first.';
+    $('responseArc').setAttribute('aria-valuetext','No location selected');
+    c.trial_started_utc=nowUTC();saveInProgress();
+    if(document.hidden||!state.windowFocused){interrupt(document.hidden?'tab_hidden':'window_blurred');return;}
+    try {
+      const ctx=await ensureAudio();
+      if(token!==state.token)return;
+      const reference=ITDAudio.synthesize({...AUDIO,sampleRate:ctx.sampleRate,itdUs:0,seed:c.spec.reference_seed});
+      const target=ITDAudio.synthesize({...AUDIO,sampleRate:ctx.sampleRate,itdUs:c.spec.itd_us,seed:c.spec.stimulus_seed});
+      const offset=Math.round((reference.metadata.latest_envelope_offset_ms+GAP_MS)*ctx.sampleRate/1000);
+      const length=offset+target.left.length;
+      const left=new Float32Array(length),right=new Float32Array(length);
+      left.set(reference.left);right.set(reference.right);left.set(target.left,offset);right.set(target.right,offset);
+      c.audio=target.metadata;c.fullscreen_at_target=!!document.fullscreenElement;
+      c.viewport_width=window.innerWidth;c.viewport_height=window.innerHeight;
+      const playback=playBuffer(left,right);
+      c.reference_start=playback.start;c.target_start=playback.start+offset/ctx.sampleRate;
+      await playback.finished;
+      if(token!==state.token)return;
+      // This guard is only for the response UI, never for the interaural delay.
+      const output=Number.isFinite(ctx.outputLatency)?ctx.outputLatency:0;
+      await new Promise(resolve=>setTimeout(resolve,Math.max(120,Math.min(750,output*1000+60))));
+      if(token!==state.token)return;
+      if(document.hidden){interrupt('tab_hidden');return;}
+      state.responding=true;c.response_enabled_perf=performance.now();
+      $('listening').hidden=true;$('responseWrap').hidden=false;
+      $('trialPrompt').textContent='Where did the second sound seem to be?';
+      $('responseArc').focus({preventScroll:true});
+      requestAnimationFrame(enlargeArcLabels);
+    }catch(error){
+      if(token!==state.token||error.message==='PLAYBACK_CANCELLED')return;
+      interrupt('audio_error');message('pauseError',error.message);
+    }
+  }
+  function interrupt(reason) {
+    if(!state.session||!['trial','paused'].includes(state.screen))return;
+    if(!state.current) {
+      clearTimeout(state.pendingTimer);state.pendingTimer=null;
+      state.current=makeCurrent();
+      if(!state.current){nextTrial();return;}
+    }
+    const c=state.current;
+    if(!c.interrupt_reasons.includes(reason))c.interrupt_reasons.push(reason);
+    if(reason==='window_blurred')c.window_blurred=true;
+    if(reason==='tab_hidden')c.tab_hidden=true;
+    if(state.screen==='paused'){saveInProgress();return;}
+    ++state.token;state.responding=false;clearTimeout(state.pendingTimer);stopSound();
+    c.interrupted_attempts++;
+    saveInProgress();message('pauseError','');
+    $('pauseReason').textContent=reason==='manual'?'The current trial will be replayed before you respond.':'The activity paused because the page or audio was interrupted. The current trial will be replayed.';
+    show('paused');
+  }
+  function pointFromEvent(event) {
+    const svg=$('responseArc');const matrix=svg.getScreenCTM();if(!matrix)return null;
+    const p=new DOMPoint(event.clientX,event.clientY).matrixTransform(matrix.inverse());
+    return ITDCore.angleFromPoint(p.x,p.y,360,360);
+  }
+  function drawMarker(id,angle) {
+    const p=ITDCore.arcPoint(angle,360,360,280);const el=$(id);
+    el.setAttribute('cx',p.x);el.setAttribute('cy',p.y);markerHidden(id,false);
+  }
+  function chooseLocation(angle) {
+    if(!state.responding||!Number.isFinite(angle))return;
+    state.selected=round(Math.max(-90,Math.min(90,angle)),2);
+    const c=state.current;c.selection_perf=performance.now();c.response_utc=nowUTC();
+    drawMarker('responseMarker',state.selected);markerHidden('hoverMarker',true);
+    $('responseArc').setAttribute('aria-valuenow',String(state.selected));
+    $('responseArc').setAttribute('aria-valuetext',state.selected===0?'Center':Math.abs(state.selected).toFixed(0)+' degrees '+(state.selected<0?'left':'right'));
+    $('confidencePrompt').textContent='How certain are you about this location?';
+    document.querySelectorAll('[data-confidence]').forEach(b=>{b.disabled=false;});
+  }
+  function recordResponse(confidence) {
+    if(!state.responding||state.selected===null)return;
+    state.responding=false;document.querySelectorAll('[data-confidence]').forEach(b=>{b.disabled=true;});
+    const s=state.session,c=state.current,m=c.audio,ctx=state.context,setup=s.setup;
+    const confidenceTime=performance.now();
+    const record={
+      record_id:s.run_id+'-'+c.phase+'-'+(c.index+1),run_id:s.run_id,task_version:ITD_TASK_VERSION,
+      ...s.participant,phase:c.phase,trial_index:c.index+1,main_trial_index:c.phase==='main'?c.index+1:0,
+      itd_us:c.spec.itd_us,leading_ear:c.spec.itd_us<0?'left':c.spec.itd_us>0?'right':'neither',delay_magnitude_us:Math.abs(c.spec.itd_us),repetition:c.spec.repetition,
+      response_angle_deg:state.selected,confidence,location_rt_ms:round(c.selection_perf-c.response_enabled_perf,2),certainty_rt_ms:round(confidenceTime-c.selection_perf,2),
+      trial_started_utc:c.trial_started_utc,response_utc:c.response_utc,confidence_utc:nowUTC(),browser_started_utc:s.browser_started_utc,
+      timezone:s.timezone,utc_offset_minutes:new Date().getTimezoneOffset(),sample_rate_hz:ctx.sampleRate,delay_samples_float:m.signedDelaySamples,audio_synthesis_method:m.method,
+      programmed_itd_us:m.programmedItdUs,rms_left:m.rmsLeft,rms_right:m.rmsRight,peak_abs:Math.max(m.peakLeft,m.peakRight),
+      audio_context_reference_start_s:c.reference_start,audio_context_target_start_s:c.target_start,reference_duration_ms:AUDIO.durationMs,gap_ms:GAP_MS,target_duration_ms:AUDIO.durationMs,ramp_ms:AUDIO.rampMs,band_low_hz:AUDIO.lowHz,band_high_hz:AUDIO.highHz,
+      volume_gain:setup.volume_gain,headphone_type:setup.headphone_type,headphone_model:setup.headphone_model,headphone_lr_verified:setup.headphone_lr_verified,centered_check:setup.centered_check,mono_spatial_off:setup.mono_spatial_off,
+      window_blurred:c.window_blurred,tab_hidden:c.tab_hidden,interrupted_attempts:c.interrupted_attempts,interrupt_reasons:JSON.stringify(c.interrupt_reasons),fullscreen_at_target:c.fullscreen_at_target,
+      viewport_width:c.viewport_width,viewport_height:c.viewport_height,device_pixel_ratio:window.devicePixelRatio||1,base_latency_s:Number.isFinite(ctx.baseLatency)?ctx.baseLatency:null,output_latency_s:Number.isFinite(ctx.outputLatency)?ctx.outputLatency:null,
+      stimulus_seed:c.spec.stimulus_seed,reference_seed:c.spec.reference_seed,schedule_seed:s.schedule_seed,browser_user_agent:navigator.userAgent
+    };
+    if(!s.records.some(r=>r.record_id===record.record_id))s.records.push(record);
+    s.in_progress=null;state.current=null;persist(s);updateSaveStatus();
+    if(c.phase==='main'&&mainRecords(s).length%13===0)queueAndSave();
+    $('responseWrap').hidden=true;$('listening').hidden=false;$('trialPrompt').textContent='';
+    if(c.phase==='main'&&mainRecords(s).length===32&&!s.midpoint_done){s.midpoint_done=true;persist(s);queueAndSave();showBreak('resume_main');return;}
+    state.pendingTimer=setTimeout(()=>nextTrial(),350+Math.floor(Math.random()*351));
+  }
+  function showBreak(next) {
+    state.breakNext=next;
+    if(next==='main') {
+      $('breakEyebrow').textContent='Practice complete';$('breakTitle').textContent='Ready for the main activity?';
+      $('breakText').textContent='You will now complete 65 trials. Respond based on what you hear; there is no trial-by-trial correctness feedback.';
+      $('breakContinue').textContent='Start main trials';
+    }else{
+      $('breakEyebrow').textContent=next==='resume_practice'?'Practice':'Listening activity';
+      $('breakTitle').textContent='Continue when you are ready';
+      $('breakText').textContent=mainRecords(state.session).length+' of 65 main trials completed. Keep your headphones and volume settings the same.';
+      $('breakContinue').textContent='Continue';
+    }
+    show('break');
+  }
+  function finishRun() {
+    const s=state.session;s.stage='complete';s.completed_utc=nowUTC();s.in_progress=null;state.current=null;
+    persist(s);queueAndSave();showResults();
+  }
+  async function replay(itdUs) {
+    stopSound();await ensureAudio();
+    const sound=ITDAudio.synthesize({...AUDIO,sampleRate:state.context.sampleRate,itdUs,seed:442717});
+    return playBuffer(sound.left,sound.right).finished;
+  }
+  function showResults() {
+    show('results');const s=state.session;
+    $('participantSummary').textContent=s.participant.first_name+' '+s.participant.last_name+' · Section '+s.participant.section_number+' · '+mainRecords(s).length+' main responses · '+new Date(s.completed_utc||Date.now()).toLocaleString();
+    if(state.report)state.report.destroy();
+    state.report=ITDReport.render($('resultsReport'),s.records,{onReplay:replay,onDownloadCSV:downloadCSV,onPrint:()=>window.print(),onRetrySave:s.endpoint?retrySave:undefined});
+    updateSaveStatus();
+  }
+  function downloadText(text,type,name) {
+    const url=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);
+  }
+  function fileStem() {return 'ITD_'+state.session.run_id.slice(0,10);}
+  function downloadCSV() {
+    if(!state.session)return;
+    const receiptById=new Map();
+    for(const job of state.session.uploads||[])for(const r of job.payload.records)receiptById.set(r.record_id,job);
+    const rows=state.session.records.map(r=>{const j=receiptById.get(r.record_id);return {...r,save_confirmed:!!(j&&j.confirmed),batch_id:j?j.payload.batch_id:'',server_received_utc:j&&j.confirmed?j.receipt.server_received_utc:''};});
+    downloadText(ITDCore.csv(rows,[...ITD_CONTRACT.record_fields,'save_confirmed','batch_id','server_received_utc']),'text/csv;charset=utf-8',fileStem()+'_responses.csv');
+  }
+  function downloadBackup(){if(state.session)downloadText(JSON.stringify(state.session,null,2),'application/json',fileStem()+'_recovery.json');}
+  async function retrySave(){
+    const client=state.client;if(!client||!client.session.endpoint)return false;
+    client.queue();await client.flush(true);
+    return client.confirmedCount()===client.session.records.length;
+  }
+
+  $('participantForm').addEventListener('submit',async event=>{
+    event.preventDefault();message('welcomeError','');
+    if(GOOGLE_SCRIPT_URL.trim()&&!ITDData.endpointValid(GOOGLE_SCRIPT_URL.trim())){message('welcomeError','The data destination is not a valid Google Apps Script /exec URL. Ask the instructor to check the setting.');return;}
+    const participant={first_name:$('firstName').value.trim(),last_name:$('lastName').value.trim(),student_id:$('studentID').value.trim(),section_number:$('sectionNumber').value.trim()};
+    if(Object.values(participant).some(v=>!v)){message('welcomeError','Please complete all four fields.');return;}
+    try {
+      const scheduleSeed=seed();
+      const session={schema_version:1,task_version:ITD_TASK_VERSION,run_id:ITDData.randomID(),participant,endpoint:GOOGLE_SCRIPT_URL.trim(),browser_started_utc:nowUTC(),timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'',schedule_seed:scheduleSeed,schedule:ITDCore.schedule(scheduleSeed,5),practice:[0,-480,480].map((itd,i)=>({itd_us:itd,repetition:0,stimulus_seed:seed(),reference_seed:seed()})),records:[],uploads:[],stage:'setup',setup:null,in_progress:null,midpoint_done:false};
+      resetSetupUI();activate(session);show('setup');
+      if(session.endpoint)ITDData.DataClient.ping(session.endpoint).then(()=>{if(state.session===session&&!session.records.length)$('saveStatus').textContent='Google Sheets connection ready. A recovery copy will also be kept in this browser.';}).catch(()=>{if(state.session===session&&!session.records.length)$('saveStatus').textContent='The class-sheet connection is not confirmed yet. Responses will stay in this browser and can be retried or downloaded.';});
+    }catch(error){message('welcomeError',error.message);}
+  });
+  $('resumeButton').addEventListener('click',()=>{
+    if(!previousSession)return;
+    activate(previousSession);const s=state.session;
+    if(s.setup){$('volume').value=s.setup.volume_gain;$('volumeValue').textContent=Math.round(s.setup.volume_gain*100)+'%';}
+    if(s.in_progress){s.in_progress.interrupted_attempts++;s.in_progress.interrupt_reasons.push('page_reload');persist(s);}
+    state.client.queue();state.client.flush(false).catch(()=>{});
+    if(s.stage==='complete'||mainRecords(s).length===65){s.stage='complete';s.completed_utc=s.completed_utc||nowUTC();persist(s);showResults();return;}
+    if(!s.setup){show('setup');return;}
+    if(practiceRecords(s).length<3){s.stage='practice';showBreak('resume_practice');}
+    else if(!mainRecords(s).length){showBreak('main');}
+    else{s.stage='main';showBreak('resume_main');}
+  });
+  $('testCenter').addEventListener('click',()=>setupSound('both'));
+  $('testLeft').addEventListener('click',()=>setupSound('left'));
+  $('testRight').addEventListener('click',()=>setupSound('right'));
+  $('stopSetupSound').addEventListener('click',()=>{++state.soundRequest;stopSound();});
+  $('volume').addEventListener('input',()=>{$('volumeValue').textContent=Math.round(Number($('volume').value)*100)+'%';if(state.gain)state.gain.gain.value=Number($('volume').value);});
+  $('centeredCheck').addEventListener('change',()=>{$('balanceNote').hidden=$('centeredCheck').value!=='strongly_off_center';});
+  $('setupContinue').addEventListener('click',()=>{
+    message('setupError','');
+    if(!$('processingOff').checked||!$('channelsVerified').checked||!$('comfortable').checked||!$('centeredCheck').value){message('setupError','Please complete the checks above before continuing.');return;}
+    ++state.soundRequest;stopSound();state.session.setup={volume_gain:Number($('volume').value),headphone_type:$('headphoneType').value,headphone_model:$('headphoneModel').value.trim(),headphone_lr_verified:true,centered_check:$('centeredCheck').value,mono_spatial_off:true};
+    state.session.stage='instructions';persist(state.session);show('instructions');
+  });
+  $('startPractice').addEventListener('click',async()=>{
+    message('instructionError','');$('startPractice').disabled=true;
+    const fullScreenReady=$('wantFullscreen').checked&&!document.fullscreenElement?fullScreen():Promise.resolve();
+    try{await Promise.all([ensureAudio(),fullScreenReady]);state.windowFocused=true;startAt('practice');}catch(error){message('instructionError',error.message);}finally{$('startPractice').disabled=false;}
+  });
+  $('breakContinue').addEventListener('click',async()=>{
+    $('breakContinue').disabled=true;
+    try{await ensureAudio();state.windowFocused=true;startAt(state.breakNext==='resume_practice'?'practice':'main');}
+    catch(error){$('breakText').textContent=error.message;}
+    finally{$('breakContinue').disabled=false;}
+  });
+  $('resumeTrial').addEventListener('click',async()=>{message('pauseError','');$('resumeTrial').disabled=true;try{await ensureAudio();state.windowFocused=true;playCurrent();}catch(error){message('pauseError',error.message);}finally{$('resumeTrial').disabled=false;}});
+  $('pauseButton').addEventListener('click',()=>interrupt('manual'));
+  $('fullscreenButton').addEventListener('click',fullScreen);
+  document.addEventListener('fullscreenchange',()=>{$('fullscreenButton').textContent=document.fullscreenElement?'Exit full screen':'Full screen';requestAnimationFrame(enlargeArcLabels);});
+  $('responseArc').addEventListener('pointermove',event=>{if(state.responding){const angle=pointFromEvent(event);if(angle!==null)drawMarker('hoverMarker',angle);else markerHidden('hoverMarker',true);}});
+  $('responseArc').addEventListener('pointerleave',()=>{markerHidden('hoverMarker',true);});
+  $('responseArc').addEventListener('pointerdown',event=>{if(!state.responding)return;const angle=pointFromEvent(event);if(angle!==null){event.preventDefault();chooseLocation(angle);}});
+  $('responseArc').addEventListener('keydown',event=>{
+    if(!state.responding)return;
+    let angle=state.selected===null?0:state.selected;
+    if(event.key==='ArrowLeft')angle-=event.shiftKey?1:5;
+    else if(event.key==='ArrowRight')angle+=event.shiftKey?1:5;
+    else if(event.key==='Home')angle=-90;
+    else if(event.key==='End')angle=90;
+    else if(event.key==='ArrowUp'||event.key==='ArrowDown')angle=0;
+    else return;
+    event.preventDefault();chooseLocation(angle);
+  });
+  document.querySelectorAll('[data-confidence]').forEach(b=>b.addEventListener('click',()=>recordResponse(Number(b.dataset.confidence))));
+  $('retrySave').addEventListener('click',retrySave);
+  $('downloadCSV').addEventListener('click',downloadCSV);
+  $('downloadBackup').addEventListener('click',downloadBackup);
+  $('newSession').addEventListener('click',()=>{
+    ++state.soundRequest;stopSound();if(state.report){state.report.destroy();state.report=null;}
+    previousSession=state.session;$('resumePanel').hidden=false;$('resumeButton').textContent='View previous results / retry save';
+    state.session=null;state.client=null;state.current=null;$('participantForm').reset();show('welcome');
+  });
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){interrupt('tab_hidden');if(state.client){state.client.queue();persist(state.session);}}
+  });
+  window.addEventListener('blur',()=>{state.windowFocused=false;interrupt('window_blurred');});
+  window.addEventListener('focus',()=>{state.windowFocused=true;});
+  window.addEventListener('pagehide',()=>{if(state.current)saveInProgress();if(state.client)state.client.beacon();});
+  window.addEventListener('online',()=>{if(state.client)state.client.flush(false).catch(()=>{});});
+  window.addEventListener('resize',()=>requestAnimationFrame(enlargeArcLabels));
+  $('localMode').hidden=!!GOOGLE_SCRIPT_URL.trim();loadPrevious();
+})();
+
+  </script>
+</body>
+</html>
