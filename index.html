@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <title>Perception Lab Demo Sound Localization</title>
+  <title>Sound Localization Demo | Perception Lab</title>
   <script>
     /* TEACHER SETUP: Paste your Google Apps Script WEB APP URL ending in /exec.
        Keep the quotation marks. An empty value enables clearly labeled local testing.
        Only index.html needs to be uploaded to GitHub Pages. */
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlcy_b5sRleWrRe4k4wLSQuZ7Pnc6T3yt6X_FH1q2vOn3OJK3G_z6aXUVQEmMEjFZ5Ow/exec";
+    const GOOGLE_SCRIPT_URL = "";
     const ITD_TASK_VERSION = "1.0.0";
   </script>
   <style>
@@ -36,7 +36,13 @@
     a { color:var(--accent); }
     [hidden] { display:none!important; }
     .site-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:16px 28px; border-bottom:1px solid rgba(40,50,55,.15); }
-    .brand { font-weight:650; letter-spacing:.02em; }
+    .brand { display:inline-flex; align-items:center; gap:13px; min-width:0; color:var(--ink); }
+    .brand-mark { display:block; width:52px; height:52px; flex:0 0 auto; }
+    .brand-copy { display:flex; flex-direction:column; gap:4px; min-width:0; }
+    .brand-name { font-size:26px; font-weight:750; letter-spacing:-.045em; line-height:1.08; }
+    .brand-demo { font-size:14px; font-weight:500; letter-spacing:.01em; line-height:1.25; color:var(--muted); }
+    body[data-screen="trial"] .brand-mark,body[data-screen="paused"] .brand-mark { width:42px; height:42px; }
+    body[data-screen="trial"] .brand-name,body[data-screen="paused"] .brand-name { font-size:22px; }
     .header-actions { display:flex; gap:10px; align-items:center; }
     .header-actions button { padding:7px 12px; font-size:14px; }
     .screen { max-width:880px; padding:34px 28px; margin:0 auto; }
@@ -86,7 +92,7 @@
     .save-area button { font-size:13px; padding:6px 10px; }
     body[data-screen="trial"] .save-area,body[data-screen="paused"] .save-area { color:#343434; }
     .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-    @media(max-width:560px) { body { font-size:16px; } .site-header { padding:12px 16px; } .screen { padding:22px 14px; } .sheet { padding:20px; } .grid-two { grid-template-columns:1fr; gap:0; } .trial-screen { padding:10px 8px; } .confidence-buttons { gap:7px; display:grid; grid-template-columns:1fr 1fr; max-width:450px; margin:auto; } .confidence-buttons button { padding:9px 7px; } #responseArc { max-height:46vh; min-height:180px; } .save-area { padding:12px 15px; } }
+    @media(max-width:560px) { body { font-size:16px; } .site-header { padding:12px 16px; } .brand { gap:10px; } .brand-mark { width:44px; height:44px; } .brand-name { font-size:23px; } .brand-demo { font-size:13px; } .screen { padding:22px 14px; } .sheet { padding:20px; } .grid-two { grid-template-columns:1fr; gap:0; } .trial-screen { padding:10px 8px; } .confidence-buttons { gap:7px; display:grid; grid-template-columns:1fr 1fr; max-width:450px; margin:auto; } .confidence-buttons button { padding:9px 7px; } #responseArc { max-height:46vh; min-height:180px; } .save-area { padding:12px 15px; } }
     @media(max-height:650px) and (min-width:650px) { .site-header { padding:8px 20px; } .trial-top { min-height:45px; } #responseArc { max-height:44vh; } .confidence { min-height:85px; } .save-area { padding-top:4px; } }
     @media print { body { background:#fff; color:#111; font-size:12px; } .site-header,.save-area,.screen:not(#results),.no-print { display:none!important; } #results { display:block!important; max-width:none; padding:0; } .results-heading { margin-bottom:12px; } }
     .itd-report {
@@ -206,7 +212,18 @@
 </head>
 <body data-screen="welcome">
   <header class="site-header">
-    <span class="brand">Perception Lab Demo Sound Localization</span>
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 56 56" aria-hidden="true" focusable="false">
+        <rect x="1" y="1" width="54" height="54" rx="16" fill="#e7f3f2" stroke="#c8dfdf" stroke-width="1.2"/>
+        <path d="M9 28 C18 12 38 12 47 28 C38 44 18 44 9 28 Z" fill="none" stroke="#176b72" stroke-width="2.2" stroke-linejoin="round"/>
+        <circle cx="28" cy="28" r="8" fill="#176b72"/>
+        <circle cx="30.5" cy="25.5" r="2.2" fill="#ffffff"/>
+      </svg>
+      <div class="brand-copy">
+        <span class="brand-name">Perception Lab</span>
+        <span class="brand-demo">Sound Localization Demo</span>
+      </div>
+    </div>
     <div class="header-actions">
       <span id="headerProgress" class="small"></span>
       <button id="fullscreenButton" type="button">Full screen</button>
